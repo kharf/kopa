@@ -1,25 +1,23 @@
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     id("org.jetbrains.kotlin.jvm")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 repositories {
-    // Use Maven Central for resolving dependencies.
     mavenCentral()
 }
 
 dependencies {
-    constraints {
-        // Define dependency versions as constraints
-        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
-    }
     // Align versions of all Kotlin components
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion"))
-    implementation(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:$coroutineVersion"))
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:${Versions.kotlin}"))
+    implementation(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:${Versions.kotlinxCoroutines}"))
     // Use the Kotlin JDK 8 standard library.
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+    testImplementation(kotlin("test"))
+    testImplementation("dev.failgood:failgood:${Versions.failGood}")
+    testImplementation("io.strikt:strikt-core:${Versions.strikt}")
 }
 
 tasks.test {

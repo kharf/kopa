@@ -1,5 +1,5 @@
 plugins {
-    id("io.kharf.koship.kotlin-library-conventions")
+    id("io.kharf.kopa.kotlin-library-conventions")
 }
 
 dependencies {
