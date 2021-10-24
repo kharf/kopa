@@ -2,11 +2,19 @@ package io.kharf.kopa.core
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import mu.KotlinLogging
 import java.io.File
+
+private val logger = KotlinLogging.logger { }
+
+sealed interface BuildResult {
+    object Ok : BuildResult
+    object Error : BuildResult
+}
 
 interface Container {
     suspend fun init(path: Path): Template
-    suspend fun build(path: Path)
+    suspend fun build(path: Path): BuildResult
 }
 
 @JvmInline
@@ -15,6 +23,7 @@ value class Path(val path: String)
 @ExperimentalSerializationApi
 object AppContainer : Container {
     override suspend fun init(path: Path): Template {
+        logger.info { "initializing app container on path ${path.path}" }
         val template = AppContainerTemplate(path)
         template.forEach { component ->
             create(component)
@@ -22,8 +31,9 @@ object AppContainer : Container {
         return template
     }
 
-    override suspend fun build(path: Path) {
-        KotlinJvmBuilder.build(path)
+    override suspend fun build(path: Path): BuildResult = when (KotlinJvmBuilder.build(path)) {
+        ExitCode.OK -> BuildResult.Ok
+        ExitCode.COMPILATION_ERROR, ExitCode.INTERNAL_ERROR, ExitCode.SCRIPT_EXECUTION_ERROR -> BuildResult.Error
     }
 
     private fun create(component: ContainerComponent) {

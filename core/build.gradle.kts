@@ -9,4 +9,5 @@ dependencies {
     implementation("com.akuleshov7:ktoml-core:${Versions.ktoml}")
     implementation("com.akuleshov7:ktoml-file:${Versions.ktoml}")
     implementation("org.jetbrains.kotlin:kotlin-compiler")
+    implementation("ch.qos.logback:logback-classic:${Versions.logback}")
 }

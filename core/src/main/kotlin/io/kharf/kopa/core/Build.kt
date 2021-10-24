@@ -7,12 +7,19 @@ import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
 import java.io.File
 
+enum class ExitCode(val code: Int) {
+    OK(0),
+    COMPILATION_ERROR(1),
+    INTERNAL_ERROR(2),
+    SCRIPT_EXECUTION_ERROR(3);
+}
+
 interface Builder {
-    suspend fun build(path: Path)
+    suspend fun build(path: Path): ExitCode
 }
 
 object KotlinJvmBuilder : Builder {
-    override suspend fun build(path: Path) {
+    override suspend fun build(path: Path): ExitCode {
         val args = K2JVMCompilerArguments().apply {
             freeArgs = listOf(File("${path.path}/src/Main.kt").absolutePath)
             // TODO: read toml
@@ -23,7 +30,7 @@ object KotlinJvmBuilder : Builder {
             noStdlib = true
             noReflect = true
         }
-        K2JVMCompiler().execImpl(
+        val compilerExitCode = K2JVMCompiler().execImpl(
             messageCollector = PrintingMessageCollector(
                 System.out,
                 MessageRenderer.WITHOUT_PATHS,
@@ -32,5 +39,6 @@ object KotlinJvmBuilder : Builder {
             services = Services.EMPTY,
             arguments = args
         )
+        return ExitCode.valueOf(compilerExitCode.name)
     }
 }
