@@ -12,6 +12,10 @@ enum class ExitCode(val code: Int) {
     COMPILATION_ERROR(1),
     INTERNAL_ERROR(2),
     SCRIPT_EXECUTION_ERROR(3);
+
+    companion object {
+        fun of(code: Int): ExitCode = values().first { it.code == code }
+    }
 }
 
 interface Builder {

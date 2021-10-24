@@ -7,6 +7,22 @@ import java.io.File
 
 private val logger = KotlinLogging.logger { }
 
+sealed interface ContainerComponent
+
+sealed class ContainerDocument : ContainerComponent
+
+sealed class ContainerDirectory(val file: File, val children: List<ContainerComponent>) : ContainerDocument()
+
+sealed class ContainerFile(val file: File) : ContainerDocument()
+
+class SourceDirectory(file: File, children: List<ContainerComponent>) : ContainerDirectory(file, children)
+
+class RootDirectory(file: File, children: List<ContainerComponent>) : ContainerDirectory(file, children)
+
+class SubDirectory(file: File, children: List<ContainerComponent>) : ContainerDirectory(file, children)
+
+class SourceFile(file: File) : ContainerFile(file)
+
 sealed interface BuildResult {
     object Ok : BuildResult
     object Error : BuildResult
@@ -21,19 +37,29 @@ interface Container {
 value class Path(val path: String)
 
 @ExperimentalSerializationApi
-object AppContainer : Container {
+class AppContainer(
+    private val builder: Builder
+) : Container {
     override suspend fun init(path: Path): Template {
-        logger.info { "initializing app container on path ${path.path}" }
+        logger.info { "initializing container on path ${path.path}" }
         val template = AppContainerTemplate(path)
         template.forEach { component ->
             create(component)
         }
+        logger.info { "successfully initialized container on path ${path.path}" }
         return template
     }
 
-    override suspend fun build(path: Path): BuildResult = when (KotlinJvmBuilder.build(path)) {
-        ExitCode.OK -> BuildResult.Ok
-        ExitCode.COMPILATION_ERROR, ExitCode.INTERNAL_ERROR, ExitCode.SCRIPT_EXECUTION_ERROR -> BuildResult.Error
+    override suspend fun build(path: Path): BuildResult {
+        logger.info { "building container on path ${path.path}" }
+        return when (builder.build(path)) {
+            ExitCode.OK -> BuildResult.Ok.also {
+                logger.info { "successfully built container on path ${path.path}" }
+            }
+            ExitCode.COMPILATION_ERROR, ExitCode.INTERNAL_ERROR, ExitCode.SCRIPT_EXECUTION_ERROR -> BuildResult.Error.also {
+                logger.error { "error occured during container build" }
+            }
+        }
     }
 
     private fun create(component: ContainerComponent) {
@@ -61,15 +87,6 @@ object AppContainer : Container {
         }
     }
 }
-
-sealed interface ContainerComponent
-sealed class ContainerDocument : ContainerComponent
-sealed class ContainerDirectory(val file: File, val children: List<ContainerComponent>) : ContainerDocument()
-sealed class ContainerFile(val file: File) : ContainerDocument()
-class SourceDirectory(file: File, children: List<ContainerComponent>) : ContainerDirectory(file, children)
-class RootDirectory(file: File, children: List<ContainerComponent>) : ContainerDirectory(file, children)
-class SubDirectory(file: File, children: List<ContainerComponent>) : ContainerDirectory(file, children)
-class SourceFile(file: File) : ContainerFile(file)
 
 @Serializable
 data class ManifestContent(

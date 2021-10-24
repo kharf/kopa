@@ -8,15 +8,20 @@ import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import java.io.File
+
+class FakeBuilder(val code: Int) : Builder {
+    override suspend fun build(path: Path): ExitCode = ExitCode.of(code)
+}
 
 @ExperimentalSerializationApi
 @Testable
 class AppContainerTest {
     val context = describe(AppContainer::class) {
-        val subject = AppContainer
-        val path = Path("build/testsample")
         describe(AppContainer::init.toString()) {
-            it("should create a simple project") {
+            val subject = AppContainer(FakeBuilder(0))
+            it("should create a simple container") {
+                val path = Path("build/testsample")
                 val template = subject.init(path)
                 expectThat(template).hasSize(1)
                 expectThat(template[0]).isA<RootDirectory>().and {
@@ -37,11 +42,23 @@ class AppContainerTest {
                         }
                     }
                 }
+                File(path.path).deleteRecursively()
             }
         }
         describe(AppContainer::build.toString()) {
-            it("should build a simple project") {
-                subject.build(path)
+            val successfulBuilder = FakeBuilder(0)
+            val erroneousBuilder = FakeBuilder(1)
+            val path = Path("build/testsample")
+            it("should return a positive result when a container could be built") {
+                val subject = AppContainer(successfulBuilder)
+                val result = subject.build(path)
+                expectThat(result).isA<BuildResult.Ok>()
+            }
+
+            it("should return a negative result when a container could not be built") {
+                val subject = AppContainer(erroneousBuilder)
+                val result = subject.build(path)
+                expectThat(result).isA<BuildResult.Error>()
             }
         }
     }
