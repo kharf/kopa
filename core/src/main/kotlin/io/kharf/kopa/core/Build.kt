@@ -7,6 +7,14 @@ import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
 import java.io.File
 
+data class Interpretation(
+    val classpath: String
+)
+
+interface ManifestInterpreter<T> {
+    fun interpret(manifest: T): Interpretation
+}
+
 enum class ExitCode(val code: Int) {
     OK(0),
     COMPILATION_ERROR(1),
