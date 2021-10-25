@@ -25,6 +25,7 @@ tasks {
         kotlinOptions {
             jvmTarget = "16"
             targetCompatibility = "16"
+            freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
         }
     }
 }

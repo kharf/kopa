@@ -7,4 +7,5 @@ object Versions {
     const val strikt = "0.32.0"
     const val kotlinLogging = "2.0.10"
     const val logback = "1.2.6"
+    const val okio = "3.0.0-alpha.11"
 }

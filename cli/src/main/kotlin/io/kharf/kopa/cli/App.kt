@@ -6,10 +6,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
-import io.kharf.kopa.core.AppContainer
-import io.kharf.kopa.core.Container
-import io.kharf.kopa.core.KotlinJvmBuilder
-import io.kharf.kopa.core.Path
+import io.kharf.kopa.core.*
 import kotlinx.coroutines.runBlocking
 
 class Kopa : CliktCommand() {
@@ -35,7 +32,11 @@ class Build(private val container: Container) : CliktCommand(help = "Compile a c
 }
 
 fun main(args: Array<String>) {
-    val container = AppContainer(KotlinJvmBuilder)
+    val container = AppContainer(
+        KotlinJvmBuilder(
+            manifestInterpreter = FileManifestInterpreter()
+        )
+    )
     Kopa()
         .subcommands(Init(container))
         .subcommands(Build(container))

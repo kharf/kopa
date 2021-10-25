@@ -62,6 +62,7 @@ class AppContainer(
         }
     }
 
+    // TODO: use okio
     private fun create(component: ContainerComponent) {
         when (component) {
             is ContainerDirectory -> component.file.mkdir()
@@ -70,16 +71,16 @@ class AppContainer(
                 // TODO: contribute to Ktoml for: component.file.writeText(Toml.encodeToString(component.content))
                 component.file.writeText(
                     "[container]\n" +
-                        "name = \"${component.content.container.name.name}\"\n" +
-                        "version = \"${component.content.container.version.version}\"\n" +
-                        "\n" +
-                        "[dependencies]\n"
+                            "name = \"${component.content.container.name.name}\"\n" +
+                            "version = \"${component.content.container.version.version}\"\n" +
+                            "\n" +
+                            "[dependencies]\n"
                 )
             is ContainerFile -> if (component is SourceFile) {
                 component.file.writeText(
                     "fun main() {\n" +
-                        "println(\"Hello World\")\n" +
-                        "}"
+                            "println(\"Hello World\")\n" +
+                            "}"
                 )
             } else {
                 component.file.createNewFile()
