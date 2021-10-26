@@ -53,6 +53,7 @@ class AppContainer(
 
     override suspend fun build(path: Path): BuildResult {
         logger.info { "building container on path ${path.path}" }
+        // TODO: call artifact resolver and pass manifest interpreter here
         return when (builder.build(Path(path.path))) {
             ExitCode.OK -> BuildResult.Ok.also {
                 logger.info { "successfully built container on path ${path.path}" }
@@ -63,7 +64,6 @@ class AppContainer(
         }
     }
 
-    // TODO: use okio
     private fun create(component: ContainerComponent) {
         when (component) {
             is ContainerDirectory -> component.file.mkdir()

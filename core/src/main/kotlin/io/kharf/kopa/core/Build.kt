@@ -100,7 +100,7 @@ class KotlinJvmBuilder @OptIn(ExperimentalFileSystem::class) constructor(
     private val manifestInterpreter: ManifestInterpreter<File>
 ) : Builder {
     override suspend fun build(containerDirPath: Path): ExitCode {
-        val interpretation = manifestInterpreter.interpret(containerDirPath.toFile())
+        val interpretation = manifestInterpreter.interpret(File("$containerDirPath/kopa.toml"))
         val args = K2JVMCompilerArguments().apply {
             freeArgs = listOf(File("${containerDirPath.absolutePathString()}/src/Main.kt").absolutePath)
             // TODO: read toml

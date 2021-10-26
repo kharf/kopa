@@ -10,5 +10,5 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass.set("io.kharf.kopa.app.AppKt")
+    mainClass.set("io.kharf.kopa.cli.AppKt")
 }
