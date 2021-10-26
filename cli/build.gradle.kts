@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(project(":core"))
     implementation("com.github.ajalt.clikt:clikt:${Versions.clikt}")
+    implementation("com.squareup.okio:okio:${Versions.okio}")
 }
 
 application {

@@ -11,7 +11,7 @@ import strikt.assertions.isEqualTo
 import java.io.File
 
 class FakeBuilder(val code: Int) : Builder {
-    override suspend fun build(path: Path): ExitCode = ExitCode.of(code)
+    override suspend fun build(containerDirPath: java.nio.file.Path): ExitCode = ExitCode.of(code)
 }
 
 @ExperimentalSerializationApi

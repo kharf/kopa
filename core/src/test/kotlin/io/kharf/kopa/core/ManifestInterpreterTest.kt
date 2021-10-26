@@ -1,25 +1,16 @@
 package io.kharf.kopa.core
 
-import com.akuleshov7.ktoml.KtomlConf
-import com.akuleshov7.ktoml.parsers.TomlParser
-import com.akuleshov7.ktoml.parsers.node.TomlKeyValueSimple
-import com.akuleshov7.ktoml.parsers.node.TomlTable
 import failgood.describe
 import kotlinx.serialization.ExperimentalSerializationApi
-import mu.KotlinLogging
 import okio.ExperimentalFileSystem
 import okio.Path.Companion.toOkioPath
-import okio.buffer
 import okio.fakefilesystem.FakeFileSystem
-import okio.sink
 import org.junit.platform.commons.annotation.Testable
 import strikt.api.expectThat
 import strikt.assertions.get
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import java.io.File
-import java.lang.RuntimeException
-import kotlin.io.path.Path
 
 @ExperimentalFileSystem
 @ExperimentalSerializationApi
@@ -73,7 +64,7 @@ class ManifestInterpreterTest {
                        [dependencies]
                        kotlin-stdlib = "1.5.32"
                        failgood      = "1.0.0"
-                    """.trimIndent()
+                        """.trimIndent()
                     )
                 }
                 val interpretation = subject.interpret(

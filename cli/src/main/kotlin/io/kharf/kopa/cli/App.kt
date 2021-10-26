@@ -6,7 +6,11 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
-import io.kharf.kopa.core.*
+import io.kharf.kopa.core.AppContainer
+import io.kharf.kopa.core.Container
+import io.kharf.kopa.core.FileManifestInterpreter
+import io.kharf.kopa.core.KotlinJvmBuilder
+import io.kharf.kopa.core.Path
 import kotlinx.coroutines.runBlocking
 
 class Kopa : CliktCommand() {

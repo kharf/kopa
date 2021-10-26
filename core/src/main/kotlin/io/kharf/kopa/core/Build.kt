@@ -14,6 +14,8 @@ import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.config.Services
 import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 private val logger = KotlinLogging.logger { }
 
@@ -30,7 +32,7 @@ data class Interpretation(
     val classpath: String
 )
 
-interface ManifestInterpreter<T> {
+interface ManifestInterpreter<in T> {
     fun interpret(manifest: T): Interpretation
 }
 
@@ -57,6 +59,7 @@ object StringManifestInterpreter : ManifestInterpreter<String> {
             )
         }
         val classpath = builder.toString()
+        logger.debug { "intepreted classpath: $classpath" }
         return Interpretation(
             classpath = classpath,
             dependencies = Dependencies(deps)
@@ -90,18 +93,18 @@ enum class ExitCode(val code: Int) {
 }
 
 interface Builder {
-    suspend fun build(path: Path): ExitCode
+    suspend fun build(containerDirPath: Path): ExitCode
 }
 
-class KotlinJvmBuilder(
+class KotlinJvmBuilder @OptIn(ExperimentalFileSystem::class) constructor(
     private val manifestInterpreter: ManifestInterpreter<File>
 ) : Builder {
-    override suspend fun build(path: Path): ExitCode {
-        val interpretation = manifestInterpreter.interpret(File(path.path))
+    override suspend fun build(containerDirPath: Path): ExitCode {
+        val interpretation = manifestInterpreter.interpret(containerDirPath.toFile())
         val args = K2JVMCompilerArguments().apply {
-            freeArgs = listOf(File("${path.path}/src/Main.kt").absolutePath)
+            freeArgs = listOf(File("${containerDirPath.absolutePathString()}/src/Main.kt").absolutePath)
             // TODO: read toml
-            destination = File("${path.path}/build/kopa.jar").absolutePath
+            destination = File("${containerDirPath.absolutePathString()}/build/kopa.jar").absolutePath
             classpath = interpretation.classpath
             skipRuntimeVersionCheck = true
             reportPerf = true

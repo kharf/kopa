@@ -7,11 +7,11 @@ import org.junit.platform.commons.annotation.Testable
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.io.File
+import kotlin.io.path.Path
 
-// TODO: fix me
-class FakeFileManifestInterpreter() : ManifestInterpreter<File> {
+class FakeFileManifestInterpreter : ManifestInterpreter<File> {
     override fun interpret(manifest: File): Interpretation {
-        return Interpretation(Dependencies(emptyList()), "build/builder-testsample")
+        return Interpretation(Dependencies(emptyList()), "")
     }
 }
 
@@ -23,9 +23,17 @@ class KotlinJvmBuilderTest {
         val subject = KotlinJvmBuilder(FakeFileManifestInterpreter())
         describe(KotlinJvmBuilder::build.toString()) {
             it("should build a simple container") {
-                val path = Path("build/builder-testsample")
-                AppContainer(subject).init(path)
-                val code = subject.build(path)
+                val path = File("build/builder-testsample")
+                path.mkdir()
+                val mainFilePath = "${path.path}/src/Main.kt"
+                val srcPath = File("${path.path}/src/")
+                srcPath.mkdir()
+                File(mainFilePath).writeText(
+                    "fun main() {\n" +
+                        "}"
+                )
+                val code = subject.build(path.toPath())
+                path.deleteRecursively()
                 expectThat(code).isEqualTo(ExitCode.OK)
             }
 

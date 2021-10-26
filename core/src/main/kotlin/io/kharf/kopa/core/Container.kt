@@ -4,6 +4,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import java.io.File
+import kotlin.io.path.Path
 
 private val logger = KotlinLogging.logger { }
 
@@ -52,7 +53,7 @@ class AppContainer(
 
     override suspend fun build(path: Path): BuildResult {
         logger.info { "building container on path ${path.path}" }
-        return when (builder.build(path)) {
+        return when (builder.build(Path(path.path))) {
             ExitCode.OK -> BuildResult.Ok.also {
                 logger.info { "successfully built container on path ${path.path}" }
             }
@@ -71,16 +72,16 @@ class AppContainer(
                 // TODO: contribute to Ktoml for: component.file.writeText(Toml.encodeToString(component.content))
                 component.file.writeText(
                     "[container]\n" +
-                            "name = \"${component.content.container.name.name}\"\n" +
-                            "version = \"${component.content.container.version.version}\"\n" +
-                            "\n" +
-                            "[dependencies]\n"
+                        "name = \"${component.content.container.name.name}\"\n" +
+                        "version = \"${component.content.container.version.version}\"\n" +
+                        "\n" +
+                        "[dependencies]\n"
                 )
             is ContainerFile -> if (component is SourceFile) {
                 component.file.writeText(
                     "fun main() {\n" +
-                            "println(\"Hello World\")\n" +
-                            "}"
+                        "println(\"Hello World\")\n" +
+                        "}"
                 )
             } else {
                 component.file.createNewFile()

@@ -12,5 +12,4 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:${Versions.logback}")
     implementation("com.squareup.okio:okio:${Versions.okio}")
     testImplementation("com.squareup.okio:okio-fakefilesystem:${Versions.okio}")
-
 }
