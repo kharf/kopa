@@ -4,7 +4,9 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import java.io.File
-import kotlin.io.path.Path
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
+import kotlin.io.path.name
 
 private val logger = KotlinLogging.logger { }
 
@@ -34,29 +36,34 @@ interface Container {
     suspend fun build(path: Path): BuildResult
 }
 
-@JvmInline
-value class Path(val path: String)
-
 @ExperimentalSerializationApi
 class AppContainer(
+    private val manifestInterpreter: ManifestInterpreter<File>,
     private val builder: Builder
 ) : Container {
     override suspend fun init(path: Path): Template {
-        logger.info { "initializing container on path ${path.path}" }
+        logger.info { "initializing container on path ${path.absolutePathString()}" }
         val template = AppContainerTemplate(path)
         template.forEach { component ->
             create(component)
         }
-        logger.info { "successfully initialized container on path ${path.path}" }
+        logger.info { "successfully initialized container on path ${path.absolutePathString()}" }
         return template
     }
 
     override suspend fun build(path: Path): BuildResult {
-        logger.info { "building container on path ${path.path}" }
-        // TODO: call artifact resolver and pass manifest interpreter here
-        return when (builder.build(Path(path.path))) {
+        logger.info { "building container on path ${path.absolutePathString()}" }
+        // TODO: call artifact resolver
+        val interpretation = manifestInterpreter.interpret(File("${path.absolutePathString()}/kopa.toml"))
+        MavenArtifactResolver.resolve(interpretation.dependencies)
+        return when (
+            builder.build(
+                containerDirPath = path,
+                manifestInterpretation = interpretation
+            )
+        ) {
             ExitCode.OK -> BuildResult.Ok.also {
-                logger.info { "successfully built container on path ${path.path}" }
+                logger.info { "successfully built container on path ${path.absolutePathString()}" }
             }
             ExitCode.COMPILATION_ERROR, ExitCode.INTERNAL_ERROR, ExitCode.SCRIPT_EXECUTION_ERROR -> BuildResult.Error.also {
                 logger.error { "error occured during container build" }
@@ -133,14 +140,17 @@ interface ContainerTemplate {
 
 object AppContainerTemplate : ContainerTemplate {
     override suspend fun invoke(root: Path): Template {
-        val file = File(root.path)
+        val file = File(root.absolutePathString())
         return Template(
             listOf(
                 RootDirectory(
                     file = file,
                     children = listOf(
-                        Manifest(ContainerName(file.name), File("${root.path}/kopa.toml")),
-                        SourceDirectory(File("${root.path}/src"), listOf(SourceFile(File("${root.path}/src/Main.kt"))))
+                        Manifest(ContainerName(file.name), File("${root.absolutePathString()}/kopa.toml")),
+                        SourceDirectory(
+                            File("${root.absolutePathString()}/src"),
+                            listOf(SourceFile(File("${root.absolutePathString()}/src/Main.kt")))
+                        )
                     )
                 ),
             )

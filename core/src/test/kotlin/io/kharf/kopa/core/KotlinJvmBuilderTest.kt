@@ -10,8 +10,8 @@ import java.io.File
 import kotlin.io.path.Path
 
 class FakeFileManifestInterpreter : ManifestInterpreter<File> {
-    override fun interpret(manifest: File): Interpretation {
-        return Interpretation(Dependencies(emptyList()), "")
+    override fun interpret(manifest: File): ManifestInterpretation {
+        return ManifestInterpretation(Dependencies(emptyList()), "")
     }
 }
 
@@ -20,7 +20,7 @@ class FakeFileManifestInterpreter : ManifestInterpreter<File> {
 class KotlinJvmBuilderTest {
     @ExperimentalFileSystem
     val context = describe(KotlinJvmBuilder::class) {
-        val subject = KotlinJvmBuilder(FakeFileManifestInterpreter())
+        val subject = KotlinJvmBuilder
         describe(KotlinJvmBuilder::build.toString()) {
             it("should build a simple container") {
                 val path = File("build/builder-testsample")
@@ -32,14 +32,14 @@ class KotlinJvmBuilderTest {
                     "fun main() {\n" +
                         "}"
                 )
-                val code = subject.build(path.toPath())
+                val code = subject.build(path.toPath(), FakeFileManifestInterpreter().interpret(File("$path/kopa.toml")))
                 path.deleteRecursively()
                 expectThat(code).isEqualTo(ExitCode.OK)
             }
 
             it("should return an erroneous ExitCode if a container could not be built") {
                 val path = Path("build/non-existing-builder-testsample")
-                val code = subject.build(path)
+                val code = subject.build(path, FakeFileManifestInterpreter().interpret(File("$path/kopa.toml")))
                 expectThat(code).isEqualTo(ExitCode.COMPILATION_ERROR)
             }
         }

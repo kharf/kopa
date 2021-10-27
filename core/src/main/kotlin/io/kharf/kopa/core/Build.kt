@@ -27,17 +27,17 @@ data class Dependency(
 
 class Dependencies(list: List<Dependency>) : List<Dependency> by list
 
-data class Interpretation(
+data class ManifestInterpretation(
     val dependencies: Dependencies,
     val classpath: String
 )
 
 interface ManifestInterpreter<in T> {
-    fun interpret(manifest: T): Interpretation
+    fun interpret(manifest: T): ManifestInterpretation
 }
 
 object StringManifestInterpreter : ManifestInterpreter<String> {
-    override fun interpret(manifest: String): Interpretation {
+    override fun interpret(manifest: String): ManifestInterpretation {
         logger.info { "interpreting manifest string" }
         val toml = TomlParser(KtomlConf()).parseString(manifest)
         val dependencies: TomlTable =
@@ -60,7 +60,7 @@ object StringManifestInterpreter : ManifestInterpreter<String> {
         }
         val classpath = builder.toString()
         logger.debug { "intepreted classpath: $classpath" }
-        return Interpretation(
+        return ManifestInterpretation(
             classpath = classpath,
             dependencies = Dependencies(deps)
         )
@@ -71,7 +71,7 @@ class FileManifestInterpreter @OptIn(ExperimentalFileSystem::class) constructor(
     private val fileSystem: FileSystem = FileSystem.SYSTEM
 ) : ManifestInterpreter<File> {
     @ExperimentalFileSystem
-    override fun interpret(manifest: File): Interpretation {
+    override fun interpret(manifest: File): ManifestInterpretation {
         logger.info { "interpreting manifest file" }
         val path = manifest.toOkioPath()
         val manifestString = fileSystem.read(path) {
@@ -93,19 +93,16 @@ enum class ExitCode(val code: Int) {
 }
 
 interface Builder {
-    suspend fun build(containerDirPath: Path): ExitCode
+    suspend fun build(containerDirPath: Path, manifestInterpretation: ManifestInterpretation): ExitCode
 }
 
-class KotlinJvmBuilder @OptIn(ExperimentalFileSystem::class) constructor(
-    private val manifestInterpreter: ManifestInterpreter<File>
-) : Builder {
-    override suspend fun build(containerDirPath: Path): ExitCode {
-        val interpretation = manifestInterpreter.interpret(File("$containerDirPath/kopa.toml"))
+object KotlinJvmBuilder : Builder {
+    override suspend fun build(containerDirPath: Path, manifestInterpretation: ManifestInterpretation): ExitCode {
         val args = K2JVMCompilerArguments().apply {
             freeArgs = listOf(File("${containerDirPath.absolutePathString()}/src/Main.kt").absolutePath)
             // TODO: read toml
             destination = File("${containerDirPath.absolutePathString()}/build/kopa.jar").absolutePath
-            classpath = interpretation.classpath
+            classpath = manifestInterpretation.classpath
             skipRuntimeVersionCheck = true
             reportPerf = true
             noStdlib = true
