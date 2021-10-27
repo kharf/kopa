@@ -11,7 +11,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-compiler")
     implementation("ch.qos.logback:logback-classic:${Versions.logback}")
     implementation("com.squareup.okio:okio:${Versions.okio}")
-    implementation("org.apache.maven.resolver:maven-resolver-api:${Versions.mavenResolverApi}")
     implementation("io.ktor:ktor-client-core:${Versions.ktor}")
     implementation("io.ktor:ktor-client-cio:${Versions.ktor}")
     testImplementation("com.squareup.okio:okio-fakefilesystem:${Versions.okio}")

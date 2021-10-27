@@ -8,6 +8,5 @@ object Versions {
     const val kotlinLogging = "2.0.10"
     const val logback = "1.2.6"
     const val okio = "3.0.0-alpha.11"
-    const val mavenResolverApi = "1.7.2"
     const val ktor = "1.6.4"
 }
