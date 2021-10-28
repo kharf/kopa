@@ -2,6 +2,7 @@ package io.kharf.kopa.core
 
 import failgood.describe
 import kotlinx.serialization.ExperimentalSerializationApi
+import okio.ExperimentalFileSystem
 import org.junit.platform.commons.annotation.Testable
 import strikt.api.expectThat
 import strikt.assertions.get
@@ -14,9 +15,19 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.name
 
 class FakeBuilder(private val code: Int) : Builder {
-    override suspend fun build(containerDirPath: Path, manifestInterpretation: ManifestInterpretation): ExitCode = ExitCode.of(code)
+    override suspend fun build(
+        containerDirPath: Path,
+        artifacts: Artifacts
+    ): ExitCode = ExitCode.of(code)
 }
 
+class FakeFileManifestInterpreter : ManifestInterpreter<File> {
+    override fun interpret(manifest: File): ManifestInterpretation {
+        return ManifestInterpretation(Dependencies(emptyList()))
+    }
+}
+
+@ExperimentalFileSystem
 @ExperimentalSerializationApi
 @Testable
 class AppContainerTest {

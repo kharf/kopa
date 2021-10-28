@@ -9,10 +9,8 @@ import strikt.assertions.isEqualTo
 import java.io.File
 import kotlin.io.path.Path
 
-class FakeFileManifestInterpreter : ManifestInterpreter<File> {
-    override fun interpret(manifest: File): ManifestInterpretation {
-        return ManifestInterpretation(Dependencies(emptyList()), "")
-    }
+class FakeArtifactResolver : ArtifactResolver {
+    override suspend fun resolve(dependencies: Dependencies): Artifacts = Artifacts(emptyList())
 }
 
 @ExperimentalSerializationApi
@@ -32,14 +30,20 @@ class KotlinJvmBuilderTest {
                     "fun main() {\n" +
                         "}"
                 )
-                val code = subject.build(path.toPath(), FakeFileManifestInterpreter().interpret(File("$path/kopa.toml")))
+                val code = subject.build(
+                    path.toPath(),
+                    FakeArtifactResolver().resolve(Dependencies(emptyList())),
+                )
                 path.deleteRecursively()
                 expectThat(code).isEqualTo(ExitCode.OK)
             }
 
             it("should return an erroneous ExitCode if a container could not be built") {
                 val path = Path("build/non-existing-builder-testsample")
-                val code = subject.build(path, FakeFileManifestInterpreter().interpret(File("$path/kopa.toml")))
+                val code = subject.build(
+                    path,
+                    FakeArtifactResolver().resolve(Dependencies(emptyList())),
+                )
                 expectThat(code).isEqualTo(ExitCode.COMPILATION_ERROR)
             }
         }

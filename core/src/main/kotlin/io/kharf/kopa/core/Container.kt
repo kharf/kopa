@@ -3,10 +3,10 @@ package io.kharf.kopa.core
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
+import okio.ExperimentalFileSystem
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.name
 
 private val logger = KotlinLogging.logger { }
 
@@ -36,6 +36,7 @@ interface Container {
     suspend fun build(path: Path): BuildResult
 }
 
+@ExperimentalFileSystem
 @ExperimentalSerializationApi
 class AppContainer(
     private val manifestInterpreter: ManifestInterpreter<File>,
@@ -53,13 +54,12 @@ class AppContainer(
 
     override suspend fun build(path: Path): BuildResult {
         logger.info { "building container on path ${path.absolutePathString()}" }
-        // TODO: call artifact resolver
         val interpretation = manifestInterpreter.interpret(File("${path.absolutePathString()}/kopa.toml"))
-        MavenArtifactResolver.resolve(interpretation.dependencies)
+        val artifacts = MavenArtifactResolver().resolve(interpretation.dependencies)
         return when (
             builder.build(
                 containerDirPath = path,
-                manifestInterpretation = interpretation
+                artifacts = artifacts
             )
         ) {
             ExitCode.OK -> BuildResult.Ok.also {

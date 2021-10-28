@@ -21,15 +21,14 @@ private val logger = KotlinLogging.logger { }
 
 data class Dependency(
     val name: String,
-    val value: String,
-    val path: String
+    val group: String,
+    val version: String,
 )
 
 class Dependencies(list: List<Dependency>) : List<Dependency> by list
 
 data class ManifestInterpretation(
     val dependencies: Dependencies,
-    val classpath: String
 )
 
 interface ManifestInterpreter<in T> {
@@ -44,24 +43,14 @@ object StringManifestInterpreter : ManifestInterpreter<String> {
             toml.children.find { node -> node.name == "dependencies" && node is TomlTable } as TomlTable?
                 ?: throw RuntimeException("dependencies wrongly configured")
         val filteredDependencies = dependencies.children.filterIsInstance<TomlKeyValueSimple>()
-        val builder = StringBuilder("")
-        val deps = mutableListOf<Dependency>()
-        filteredDependencies.forEachIndexed { index, dependency ->
-            val path = "build/classpath/${dependency.key.content}-${dependency.value.content}.jar"
-            builder.append(path)
-            if (filteredDependencies.size != index + 1) builder.append(":")
-            deps.add(
-                Dependency(
-                    name = dependency.key.content,
-                    value = dependency.value.content as String,
-                    path = path
-                )
+        val deps = filteredDependencies.map { dependency ->
+            Dependency(
+                name = dependency.key.content.substringAfterLast("."),
+                version = dependency.value.content as String,
+                group = dependency.key.content.substringBeforeLast(".", ""),
             )
         }
-        val classpath = builder.toString()
-        logger.debug { "intepreted classpath: $classpath" }
         return ManifestInterpretation(
-            classpath = classpath,
             dependencies = Dependencies(deps)
         )
     }
@@ -93,16 +82,20 @@ enum class ExitCode(val code: Int) {
 }
 
 interface Builder {
-    suspend fun build(containerDirPath: Path, manifestInterpretation: ManifestInterpretation): ExitCode
+    suspend fun build(containerDirPath: Path, artifacts: Artifacts): ExitCode
 }
 
 object KotlinJvmBuilder : Builder {
-    override suspend fun build(containerDirPath: Path, manifestInterpretation: ManifestInterpretation): ExitCode {
+    override suspend fun build(
+        containerDirPath: Path,
+        artifacts: Artifacts
+    ): ExitCode {
         val args = K2JVMCompilerArguments().apply {
             freeArgs = listOf(File("${containerDirPath.absolutePathString()}/src/Main.kt").absolutePath)
-            // TODO: read toml
             destination = File("${containerDirPath.absolutePathString()}/build/kopa.jar").absolutePath
-            classpath = manifestInterpretation.classpath
+            classpath = artifacts.joinToString(":") {
+                it.location
+            }
             skipRuntimeVersionCheck = true
             reportPerf = true
             noStdlib = true

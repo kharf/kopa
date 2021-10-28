@@ -27,21 +27,20 @@ class ManifestInterpreterTest {
                        version = "0.1.0"
 
                        [dependencies]
-                       kotlin-stdlib = "1.5.32"
-                       failgood      = "1.0.0"
+                       "org.jetbrains.kotlin.kotlin-stdlib" = "1.5.32"
+                       "dev.failgood.failgood"              = "1.0.0"
                     """.trimIndent()
                 )
                 expectThat(interpretation) {
-                    get { classpath }.isEqualTo("build/classpath/kotlin-stdlib-1.5.32.jar:build/classpath/failgood-1.0.0.jar")
                     get { dependencies }.hasSize(2)[0].and {
                         get { name }.isEqualTo("kotlin-stdlib")
-                        get { value }.isEqualTo("1.5.32")
-                        get { path }.isEqualTo("build/classpath/kotlin-stdlib-1.5.32.jar")
+                        get { version }.isEqualTo("1.5.32")
+                        get { group }.isEqualTo("org.jetbrains.kotlin")
                     }
                     get { dependencies }[1].and {
                         get { name }.isEqualTo("failgood")
-                        get { value }.isEqualTo("1.0.0")
-                        get { path }.isEqualTo("build/classpath/failgood-1.0.0.jar")
+                        get { version }.isEqualTo("1.0.0")
+                        get { group }.isEqualTo("dev.failgood")
                     }
                 }
             }
@@ -71,16 +70,15 @@ class ManifestInterpreterTest {
                     file
                 )
                 expectThat(interpretation) {
-                    get { classpath }.isEqualTo("build/classpath/kotlin-stdlib-1.5.32.jar:build/classpath/failgood-1.0.0.jar")
                     get { dependencies }.hasSize(2)[0].and {
                         get { name }.isEqualTo("kotlin-stdlib")
-                        get { value }.isEqualTo("1.5.32")
-                        get { path }.isEqualTo("build/classpath/kotlin-stdlib-1.5.32.jar")
+                        get { version }.isEqualTo("1.5.32")
+                        get { group }.isEqualTo("")
                     }
                     get { dependencies }[1].and {
                         get { name }.isEqualTo("failgood")
-                        get { value }.isEqualTo("1.0.0")
-                        get { path }.isEqualTo("build/classpath/failgood-1.0.0.jar")
+                        get { version }.isEqualTo("1.0.0")
+                        get { group }.isEqualTo("")
                     }
                 }
             }
