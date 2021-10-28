@@ -1,0 +1,1 @@
+![Kopa](doc/logo.png)
