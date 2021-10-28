@@ -1,1 +1,1 @@
-![Kopa](doc/logo.png)
+![Kopa](doc/logo2.png)
