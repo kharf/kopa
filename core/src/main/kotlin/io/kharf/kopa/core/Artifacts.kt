@@ -1,19 +1,17 @@
 package io.kharf.kopa.core
 
 import io.ktor.client.HttpClient
-import io.ktor.client.call.receive
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
-import io.ktor.client.statement.HttpStatement
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.Url
-import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.isEmpty
 import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import okio.ExperimentalFileSystem
 import okio.FileSystem
@@ -31,16 +29,17 @@ class HttpDependencyResolverClient(
     private val client: HttpClient = HttpClient(CIO)
 ) : DependencyResolverClient {
     override suspend fun resolve(url: String): Flow<ByteBuffer> {
-        return client.get<HttpStatement>(Url(url)).execute { httpResponse ->
-            flow<ByteBuffer> {
-                val channel: ByteReadChannel = httpResponse.receive()
-                while (!channel.isClosedForRead) {
-                    val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong(), 0)
-                    while (!packet.isEmpty) {
-                        val bytes = packet.readBytes()
-                        val buffer = ByteBuffer.wrap(bytes)
-                        emit(buffer)
-                    }
+        logger.info { "downloading $url" }
+        val response = client.get<HttpResponse>(Url(url))
+        return flow<ByteBuffer> {
+            val channel = response.content
+            while (!channel.isClosedForRead) {
+                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong(), 0)
+                while (!packet.isEmpty) {
+                    val bytes = packet.readBytes()
+                    val buffer = ByteBuffer.wrap(bytes)
+                    logger.trace { "emitting ${bytes.size}" }
+                    emit(buffer)
                 }
             }
         }
@@ -95,16 +94,19 @@ class FileSystemArtifactStorage(
         dir
     }
 
-    override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location {
-        logger.info { "storing $artifactName on file system" }
-        val artifactFile = File("${kopaDir.absolutePath}/$artifactName")
-        artifactContent.flowOn(Dispatchers.IO).collect { buffer ->
+    override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location =
+        withContext(Dispatchers.IO) {
+            logger.info { "storing $artifactName on file system" }
+            val artifactFile = File("${kopaDir.absolutePath}/$artifactName")
             fileSystem.write(artifactFile.toOkioPath()) {
-                write(buffer)
+                artifactContent.collect { buffer ->
+                    logger.trace { "collecting $buffer" }
+                    this.write(buffer)
+                    logger.trace { "stored ${artifactFile.length()}" }
+                }
             }
+            Location(artifactFile.absolutePath)
         }
-        return Location(artifactFile.absolutePath)
-    }
 }
 
 class Artifacts(private val artifacts: List<Artifact>) : List<Artifact> by artifacts

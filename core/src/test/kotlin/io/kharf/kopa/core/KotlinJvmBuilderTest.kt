@@ -33,7 +33,7 @@ class KotlinJvmBuilderTest {
                 srcPath.mkdir()
                 File(mainFilePath).writeText(
                     "fun main() {\n" +
-                            "}"
+                        "}"
                 )
                 val code = subject.build(
                     path.toPath(),

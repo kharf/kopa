@@ -28,7 +28,6 @@ class FakeDependencyResolver : DependencyResolver {
         dependencies: Dependencies,
         store: suspend (Flow<ByteBuffer>, String) -> Location
     ): Artifacts = Artifacts(emptyList())
-
 }
 
 class FakeArtifactStorage : ArtifactStorage {
