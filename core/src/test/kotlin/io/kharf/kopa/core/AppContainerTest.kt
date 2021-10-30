@@ -1,6 +1,7 @@
 package io.kharf.kopa.core
 
 import failgood.describe
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.ExperimentalSerializationApi
 import okio.ExperimentalFileSystem
 import org.junit.platform.commons.annotation.Testable
@@ -10,6 +11,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import java.io.File
+import java.nio.ByteBuffer
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.name
@@ -19,6 +21,18 @@ class FakeBuilder(private val code: Int) : Builder {
         containerDirPath: Path,
         artifacts: Artifacts
     ): ExitCode = ExitCode.of(code)
+}
+
+class FakeDependencyResolver : DependencyResolver {
+    override suspend fun resolve(
+        dependencies: Dependencies,
+        store: suspend (Flow<ByteBuffer>, String) -> Location
+    ): Artifacts = Artifacts(emptyList())
+
+}
+
+class FakeArtifactStorage : ArtifactStorage {
+    override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location = Location("")
 }
 
 class FakeFileManifestInterpreter : ManifestInterpreter<File> {
@@ -33,7 +47,12 @@ class FakeFileManifestInterpreter : ManifestInterpreter<File> {
 class AppContainerTest {
     val context = describe(AppContainer::class) {
         describe(AppContainer::init.toString()) {
-            val subject = AppContainer(FakeFileManifestInterpreter(), FakeBuilder(0))
+            val subject = AppContainer(
+                FakeFileManifestInterpreter(),
+                FakeBuilder(0),
+                FakeDependencyResolver(),
+                FakeArtifactStorage()
+            )
             it("should create a simple container") {
                 val path = Path.of("build/testsample")
                 val template = subject.init(path)
@@ -64,13 +83,19 @@ class AppContainerTest {
             val erroneousBuilder = FakeBuilder(1)
             val path = Path.of("build/testsample")
             it("should return a positive result when a container could be built") {
-                val subject = AppContainer(FakeFileManifestInterpreter(), successfulBuilder)
+                val subject = AppContainer(
+                    FakeFileManifestInterpreter(), successfulBuilder, FakeDependencyResolver(),
+                    FakeArtifactStorage()
+                )
                 val result = subject.build(path)
                 expectThat(result).isA<BuildResult.Ok>()
             }
 
             it("should return a negative result when a container could not be built") {
-                val subject = AppContainer(FakeFileManifestInterpreter(), erroneousBuilder)
+                val subject = AppContainer(
+                    FakeFileManifestInterpreter(), erroneousBuilder, FakeDependencyResolver(),
+                    FakeArtifactStorage()
+                )
                 val result = subject.build(path)
                 expectThat(result).isA<BuildResult.Error>()
             }

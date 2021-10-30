@@ -1,16 +1,21 @@
 package io.kharf.kopa.core
 
 import failgood.describe
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.ExperimentalSerializationApi
 import okio.ExperimentalFileSystem
 import org.junit.platform.commons.annotation.Testable
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.io.File
+import java.nio.ByteBuffer
 import kotlin.io.path.Path
 
-class FakeArtifactResolver : ArtifactResolver {
-    override suspend fun resolve(dependencies: Dependencies): Artifacts = Artifacts(emptyList())
+class FakeArtifactResolver : DependencyResolver {
+    override suspend fun resolve(
+        dependencies: Dependencies,
+        store: suspend (Flow<ByteBuffer>, String) -> Location
+    ): Artifacts = Artifacts(emptyList())
 }
 
 @ExperimentalSerializationApi
@@ -28,11 +33,13 @@ class KotlinJvmBuilderTest {
                 srcPath.mkdir()
                 File(mainFilePath).writeText(
                     "fun main() {\n" +
-                        "}"
+                            "}"
                 )
                 val code = subject.build(
                     path.toPath(),
-                    FakeArtifactResolver().resolve(Dependencies(emptyList())),
+                    FakeArtifactResolver().resolve(Dependencies(emptyList())) { _, _ ->
+                        Location("")
+                    },
                 )
                 path.deleteRecursively()
                 expectThat(code).isEqualTo(ExitCode.OK)
@@ -42,7 +49,9 @@ class KotlinJvmBuilderTest {
                 val path = Path("build/non-existing-builder-testsample")
                 val code = subject.build(
                     path,
-                    FakeArtifactResolver().resolve(Dependencies(emptyList())),
+                    FakeArtifactResolver().resolve(Dependencies(emptyList())) { _, _ ->
+                        Location("")
+                    },
                 )
                 expectThat(code).isEqualTo(ExitCode.COMPILATION_ERROR)
             }

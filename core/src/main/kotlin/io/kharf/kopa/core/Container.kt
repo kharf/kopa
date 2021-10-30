@@ -40,7 +40,9 @@ interface Container {
 @ExperimentalSerializationApi
 class AppContainer(
     private val manifestInterpreter: ManifestInterpreter<File>,
-    private val builder: Builder
+    private val builder: Builder,
+    private val dependencyResolver: DependencyResolver,
+    private val artifactStorage: ArtifactStorage
 ) : Container {
     override suspend fun init(path: Path): Template {
         logger.info { "initializing container on path ${path.absolutePathString()}" }
@@ -55,7 +57,7 @@ class AppContainer(
     override suspend fun build(path: Path): BuildResult {
         logger.info { "building container on path ${path.absolutePathString()}" }
         val interpretation = manifestInterpreter.interpret(File("${path.absolutePathString()}/kopa.toml"))
-        val artifacts = MavenArtifactResolver().resolve(interpretation.dependencies)
+        val artifacts = dependencyResolver.resolve(interpretation.dependencies, artifactStorage::store)
         return when (
             builder.build(
                 containerDirPath = path,
@@ -79,16 +81,16 @@ class AppContainer(
                 // TODO: contribute to Ktoml for: component.file.writeText(Toml.encodeToString(component.content))
                 component.file.writeText(
                     "[container]\n" +
-                        "name = \"${component.content.container.name.name}\"\n" +
-                        "version = \"${component.content.container.version.version}\"\n" +
-                        "\n" +
-                        "[dependencies]\n"
+                            "name = \"${component.content.container.name.name}\"\n" +
+                            "version = \"${component.content.container.version.version}\"\n" +
+                            "\n" +
+                            "[dependencies]\n"
                 )
             is ContainerFile -> if (component is SourceFile) {
                 component.file.writeText(
                     "fun main() {\n" +
-                        "println(\"Hello World\")\n" +
-                        "}"
+                            "println(\"Hello World\")\n" +
+                            "}"
                 )
             } else {
                 component.file.createNewFile()

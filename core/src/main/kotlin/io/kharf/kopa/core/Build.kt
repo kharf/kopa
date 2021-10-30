@@ -94,7 +94,7 @@ object KotlinJvmBuilder : Builder {
             freeArgs = listOf(File("${containerDirPath.absolutePathString()}/src/Main.kt").absolutePath)
             destination = File("${containerDirPath.absolutePathString()}/build/kopa.jar").absolutePath
             classpath = artifacts.joinToString(":") {
-                it.location
+                it.location.location
             }
             skipRuntimeVersionCheck = true
             reportPerf = true

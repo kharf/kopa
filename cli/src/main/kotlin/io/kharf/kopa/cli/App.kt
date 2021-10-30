@@ -9,7 +9,9 @@ import com.github.ajalt.clikt.parameters.arguments.optional
 import io.kharf.kopa.core.AppContainer
 import io.kharf.kopa.core.Container
 import io.kharf.kopa.core.FileManifestInterpreter
+import io.kharf.kopa.core.FileSystemArtifactStorage
 import io.kharf.kopa.core.KotlinJvmBuilder
+import io.kharf.kopa.core.MavenDependencyResolver
 import kotlinx.coroutines.runBlocking
 import okio.ExperimentalFileSystem
 import java.nio.file.Path
@@ -40,7 +42,9 @@ class Build(private val container: Container) : CliktCommand(help = "Compile a c
 fun main(args: Array<String>) {
     val container = AppContainer(
         manifestInterpreter = FileManifestInterpreter(),
-        builder = KotlinJvmBuilder
+        builder = KotlinJvmBuilder,
+        dependencyResolver = MavenDependencyResolver(),
+        artifactStorage = FileSystemArtifactStorage()
     )
     Kopa()
         .subcommands(Init(container))
