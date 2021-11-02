@@ -15,7 +15,12 @@ class FakeArtifactResolver : DependencyResolver {
     override suspend fun resolve(
         dependencies: Dependencies,
         store: suspend (Flow<ByteBuffer>, String) -> Location
-    ): Artifacts = Artifacts(emptyList())
+    ): Artifacts = Artifacts(
+        listOf(
+            Artifact(Location(this::class.java.classLoader.getResource("testDependencies/kopa.jar").path)),
+            Artifact(Location("${System.getProperty("user.home")}/.kopa/kotlin-stdlib.jar"))
+        )
+    )
 }
 
 @ExperimentalSerializationApi
@@ -27,10 +32,10 @@ class KotlinJvmBuilderTest {
         describe(KotlinJvmBuilder::build.toString()) {
             it("should build a simple container") {
                 val path = File("build/builder-testsample")
-                path.mkdir()
+                path.mkdirs()
                 val mainFilePath = "${path.path}/src/Main.kt"
                 val srcPath = File("${path.path}/src/")
-                srcPath.mkdir()
+                srcPath.mkdirs()
                 File(mainFilePath).writeText(
                     "fun main() {\n" +
                         "}"
@@ -38,6 +43,32 @@ class KotlinJvmBuilderTest {
                 val code = subject.build(
                     path.toPath(),
                     FakeArtifactResolver().resolve(Dependencies(emptyList())) { _, _ ->
+                        Location("")
+                    },
+                )
+                path.deleteRecursively()
+                expectThat(code).isEqualTo(ExitCode.OK)
+            }
+
+            it("should build a container with a dependency") {
+                val path = File("build/builder-testsample2")
+                path.mkdirs()
+                val mainFilePath = "${path.path}/src/Main.kt"
+                val srcPath = File("${path.path}/src/")
+                srcPath.mkdirs()
+                File(mainFilePath).writeText(
+                    "fun main() {\n" +
+                        "println(\"Hello World\")\n" +
+                        "Main().helloWorld()" +
+                        "}"
+                )
+                val code = subject.build(
+                    path.toPath(),
+                    FakeArtifactResolver().resolve(
+                        Dependencies(
+                            emptyList()
+                        )
+                    ) { _, _ ->
                         Location("")
                     },
                 )
