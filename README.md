@@ -1,3 +1,4 @@
 ![Kopa](doc/logo2.png)
 ==========
-[![main](https://github.com/kharf/kopa/actions/workflows/main.yaml/badge.svg)](https://github.com/kharf/kopa/actions/workflows/main.yaml)
+![main](https://img.shields.io/github/workflow/status/kharf/kopa/main?label=main&style=for-the-badge)
+![license](https://img.shields.io/github/license/kharf/kopa?style=for-the-badge)
