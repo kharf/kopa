@@ -1,0 +1,45 @@
+name: main
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ 16 ]
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+
+      - name: "Set up Java"
+        uses: actions/setup-java@v2
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: 'adopt'
+
+      - name: "Cache Gradle packages"
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: "Publish HTML Test Report (Artifact)"
+        uses: actions/upload-artifact@v2
+        if: failure() && hashFiles('./kopa/build/reports/tests/') != ''
+        with:
+          name: build-test-report-${{ github.run_number }}
+          path: ./kopa/build/reports/tests/
+          retention-days: 14
+
+      - name: "Publish Test Report (Annotations)"
+        uses: dorny/test-reporter@v1.5.0
+        if: failure() && hashFiles('./kopa/build/reports/tests/test/') != ''
+        with:
+          name: Build Test Results
+          path: kopa/build/test-results/**/*.xml
+          reporter: java-junit
