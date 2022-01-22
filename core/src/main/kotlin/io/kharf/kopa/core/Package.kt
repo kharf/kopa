@@ -9,82 +9,81 @@ import kotlin.io.path.absolutePathString
 
 private val logger = KotlinLogging.logger { }
 
-sealed interface ContainerComponent
+sealed interface PackageComponent
 
-sealed class ContainerDocument : ContainerComponent
+sealed class PackageDocument : PackageComponent
 
-sealed class ContainerDirectory(val file: File, val children: List<ContainerComponent>) : ContainerDocument()
+sealed class PackageDirectory(val file: File, val children: List<PackageComponent>) : PackageDocument()
 
-sealed class ContainerFile(val file: File) : ContainerDocument()
+sealed class PackageFile(val file: File) : PackageDocument()
 
-class SourceDirectory(file: File, children: List<ContainerComponent>) : ContainerDirectory(file, children)
+class SourceDirectory(file: File, children: List<PackageComponent>) : PackageDirectory(file, children)
 
-class RootDirectory(file: File, children: List<ContainerComponent>) : ContainerDirectory(file, children)
+class RootDirectory(file: File, children: List<PackageComponent>) : PackageDirectory(file, children)
 
-class SubDirectory(file: File, children: List<ContainerComponent>) : ContainerDirectory(file, children)
-
-class SourceFile(file: File) : ContainerFile(file)
+class SourceFile(file: File) : PackageFile(file)
 
 sealed interface BuildResult {
     object Ok : BuildResult
     object Error : BuildResult
 }
 
-interface Container {
+interface Package {
     suspend fun init(path: Path): Template
     suspend fun build(path: Path): BuildResult
 }
 
 @ExperimentalSerializationApi
-class AppContainer(
+class SinglePackage(
     private val manifestInterpreter: ManifestInterpreter<File>,
     private val builder: Builder,
     private val dependencyResolver: DependencyResolver,
     private val artifactStorage: ArtifactStorage
-) : Container {
+) : Package {
     override suspend fun init(path: Path): Template {
-        logger.info { "initializing container on path ${path.absolutePathString()}" }
-        val template = AppContainerTemplate(path)
+        logger.info { "initializing package on path ${path.absolutePathString()}" }
+        val template = SinglePackageTemplate(path)
         template.forEach { component ->
             create(component)
         }
-        logger.info { "successfully initialized container on path ${path.absolutePathString()}" }
+        logger.info { "successfully initialized package on path ${path.absolutePathString()}" }
         return template
     }
 
     override suspend fun build(path: Path): BuildResult {
-        logger.info { "building container on path ${path.absolutePathString()}" }
+        logger.info { "building package on path ${path.absolutePathString()}" }
         val interpretation = manifestInterpreter.interpret(File("${path.absolutePathString()}/kopa.toml"))
         val artifacts = dependencyResolver.resolve(interpretation.dependencies, artifactStorage::store)
         return when (
             builder.build(
-                containerDirPath = path,
+                packageDirPath = path,
                 artifacts = artifacts
             )
         ) {
             ExitCode.OK -> BuildResult.Ok.also {
-                logger.info { "successfully built container on path ${path.absolutePathString()}" }
+                logger.info { "successfully built package on path ${path.absolutePathString()}" }
             }
             ExitCode.COMPILATION_ERROR, ExitCode.INTERNAL_ERROR, ExitCode.SCRIPT_EXECUTION_ERROR -> BuildResult.Error.also {
-                logger.error { "error occured during container build" }
+                logger.error { "error occured during package build" }
             }
         }
     }
 
-    private fun create(component: ContainerComponent) {
+    private fun create(component: PackageComponent) {
         when (component) {
-            is ContainerDirectory -> component.file.mkdir()
+            is PackageDirectory -> component.file.mkdir()
                 .also { component.children.forEach { create(it) } }
             is Manifest ->
                 // TODO: contribute to Ktoml for: component.file.writeText(Toml.encodeToString(component.content))
                 component.file.writeText(
-                    "[container]\n" +
-                        "name = \"${component.content.container.name.name}\"\n" +
-                        "version = \"${component.content.container.version.version}\"\n" +
+                    "[package]\n" +
+                        "name = \"${component.content.packageTable.name.name}\"\n" +
+                        "version = \"${component.content.packageTable.version.version}\"\n" +
                         "\n" +
-                        "[dependencies]\n"
+                        "[dependencies]\n" +
+                        "\"org.jetbrains.kotlin.kotlin-stdlib\" = \"1.6.10\""
                 )
-            is ContainerFile -> if (component is SourceFile) {
+            is PackageFile -> if (component is SourceFile) {
                 component.file.writeText(
                     "fun main() {\n" +
                         "println(\"Hello World\")\n" +
@@ -99,46 +98,46 @@ class AppContainer(
 
 @Serializable
 data class ManifestContent(
-    val container: ContainerTable
+    val packageTable: PackageTable
 )
 
 @Serializable
 @JvmInline
-value class ContainerTableName(val name: String)
+value class PackageTableName(val name: String)
 
 @Serializable
 @JvmInline
-value class ContainerTableVersion(val version: String)
+value class PackageTableVersion(val version: String)
 
 @Serializable
-data class ContainerTable(
-    val name: ContainerTableName,
-    val version: ContainerTableVersion
+data class PackageTable(
+    val name: PackageTableName,
+    val version: PackageTableVersion
 )
 
 @JvmInline
-value class ContainerName(val name: String) {
+value class PackageName(val name: String) {
     override fun toString(): String = name
 }
 
 class Manifest(
-    containerName: ContainerName,
+    packageName: PackageName,
     file: File,
     val content: ManifestContent = ManifestContent(
-        ContainerTable(
-            name = ContainerTableName(containerName.name),
-            version = ContainerTableVersion("0.1.0")
+        PackageTable(
+            name = PackageTableName(packageName.name),
+            version = PackageTableVersion("0.1.0")
         )
     )
-) : ContainerFile(file)
+) : PackageFile(file)
 
-class Template(components: List<ContainerComponent>) : List<ContainerComponent> by components
+class Template(components: List<PackageComponent>) : List<PackageComponent> by components
 
-interface ContainerTemplate {
+interface PackageTemplate {
     suspend operator fun invoke(root: Path): Template
 }
 
-object AppContainerTemplate : ContainerTemplate {
+object SinglePackageTemplate : PackageTemplate {
     override suspend fun invoke(root: Path): Template {
         val file = File(root.absolutePathString())
         return Template(
@@ -146,7 +145,7 @@ object AppContainerTemplate : ContainerTemplate {
                 RootDirectory(
                     file = file,
                     children = listOf(
-                        Manifest(ContainerName(file.name), File("${root.absolutePathString()}/kopa.toml")),
+                        Manifest(PackageName(file.name), File("${root.absolutePathString()}/kopa.toml")),
                         SourceDirectory(
                             File("${root.absolutePathString()}/src"),
                             listOf(SourceFile(File("${root.absolutePathString()}/src/Main.kt")))

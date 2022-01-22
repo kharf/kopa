@@ -28,7 +28,7 @@ class KotlinJvmBuilderTest {
     val context = describe(KotlinJvmBuilder::class) {
         val subject = KotlinJvmBuilder
         describe(KotlinJvmBuilder::build.toString()) {
-            it("should build a simple container") {
+            it("should build a simple package") {
                 val path = File("build/builder-testsample")
                 path.mkdirs()
                 val mainFilePath = "${path.path}/src/Main.kt"
@@ -48,7 +48,7 @@ class KotlinJvmBuilderTest {
                 expectThat(code).isEqualTo(ExitCode.OK)
             }
 
-            it("should build a container with a dependency") {
+            it("should build a package with a dependency") {
                 val path = File("build/builder-testsample2")
                 path.mkdirs()
                 val mainFilePath = "${path.path}/src/Main.kt"
@@ -70,10 +70,11 @@ class KotlinJvmBuilderTest {
                         Location("")
                     },
                 )
+                path.deleteRecursively()
                 expectThat(code).isEqualTo(ExitCode.OK)
             }
 
-            it("should return an erroneous ExitCode if a container could not be built") {
+            it("should return an erroneous ExitCode if a package could not be built") {
                 val path = Path("build/non-existing-builder-testsample")
                 val code = subject.build(
                     path,

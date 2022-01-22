@@ -20,7 +20,7 @@ class ManifestInterpreterTest {
             it("interpretes a simple manifest") {
                 val interpretation = subject.interpret(
                     """
-                       [container]
+                       [package]
                        name = "builder-testsample"
                        version = "0.1.0"
 
@@ -54,7 +54,7 @@ class ManifestInterpreterTest {
                 fileSystem.write(file.toOkioPath(), true) {
                     writeUtf8(
                         """
-                       [container]
+                       [package]
                        name = "builder-testsample"
                        version = "0.1.0"
 

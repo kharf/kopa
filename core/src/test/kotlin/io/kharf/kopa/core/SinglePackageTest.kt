@@ -13,11 +13,10 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
-import kotlin.io.path.name
 
 class FakeBuilder(private val code: Int) : Builder {
     override suspend fun build(
-        containerDirPath: Path,
+        packageDirPath: Path,
         artifacts: Artifacts
     ): ExitCode = ExitCode.of(code)
 }
@@ -41,16 +40,16 @@ class FakeFileManifestInterpreter : ManifestInterpreter<File> {
 
 @ExperimentalSerializationApi
 @Testable
-class AppContainerTest {
-    val context = describe(AppContainer::class) {
-        describe(AppContainer::init.toString()) {
-            val subject = AppContainer(
+class SinglePackageTest {
+    val context = describe(SinglePackage::class) {
+        describe(SinglePackage::init.toString()) {
+            val subject = SinglePackage(
                 FakeFileManifestInterpreter(),
                 FakeBuilder(0),
                 FakeDependencyResolver(),
                 FakeArtifactStorage()
             )
-            it("should create a simple container") {
+            it("should create a simple package") {
                 val path = Path.of("build/testsample")
                 val template = subject.init(path)
                 expectThat(template).hasSize(1)
@@ -59,8 +58,8 @@ class AppContainerTest {
                     get { this.children }.hasSize(2).and {
                         get(0).isA<Manifest>().and {
                             get { this.file.path }.isEqualTo("${path.absolutePathString()}/kopa.toml")
-                            get { this.content.container.name }.isEqualTo(ContainerTableName("testsample"))
-                            get { this.content.container.version }.isEqualTo(ContainerTableVersion("0.1.0"))
+                            get { this.content.packageTable.name }.isEqualTo(PackageTableName("testsample"))
+                            get { this.content.packageTable.version }.isEqualTo(PackageTableVersion("0.1.0"))
                         }
                         get(1).isA<SourceDirectory>().and {
                             get { this.file.path }.isEqualTo("${path.absolutePathString()}/src")
@@ -72,24 +71,26 @@ class AppContainerTest {
                         }
                     }
                 }
-                File(path.name).deleteRecursively()
+                path.toFile().deleteRecursively()
             }
         }
-        describe(AppContainer::build.toString()) {
+        describe(SinglePackage::build.toString()) {
             val successfulBuilder = FakeBuilder(0)
             val erroneousBuilder = FakeBuilder(1)
             val path = Path.of("build/testsample")
-            it("should return a positive result when a container could be built") {
-                val subject = AppContainer(
+            it("should return a positive result when a package could be built") {
+                val subject = SinglePackage(
                     FakeFileManifestInterpreter(), successfulBuilder, FakeDependencyResolver(),
                     FakeArtifactStorage()
                 )
                 val result = subject.build(path)
                 expectThat(result).isA<BuildResult.Ok>()
+
+                path.toFile().deleteRecursively()
             }
 
-            it("should return a negative result when a container could not be built") {
-                val subject = AppContainer(
+            it("should return a negative result when a package could not be built") {
+                val subject = SinglePackage(
                     FakeFileManifestInterpreter(), erroneousBuilder, FakeDependencyResolver(),
                     FakeArtifactStorage()
                 )

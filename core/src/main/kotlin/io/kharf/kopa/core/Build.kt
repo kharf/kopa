@@ -80,17 +80,17 @@ enum class ExitCode(val code: Int) {
 }
 
 interface Builder {
-    suspend fun build(containerDirPath: Path, artifacts: Artifacts): ExitCode
+    suspend fun build(packageDirPath: Path, artifacts: Artifacts): ExitCode
 }
 
 object KotlinJvmBuilder : Builder {
     override suspend fun build(
-        containerDirPath: Path,
+        packageDirPath: Path,
         artifacts: Artifacts
     ): ExitCode {
         val args = K2JVMCompilerArguments().apply {
-            freeArgs = listOf(File("${containerDirPath.absolutePathString()}/src/Main.kt").absolutePath)
-            destination = File("${containerDirPath.absolutePathString()}/build/kopa.jar").absolutePath
+            freeArgs = listOf(File("${packageDirPath.absolutePathString()}/src/Main.kt").absolutePath)
+            destination = File("${packageDirPath.absolutePathString()}/build/kopa.jar").absolutePath
             classpath = artifacts.joinToString(":") {
                 it.location.location
             }
