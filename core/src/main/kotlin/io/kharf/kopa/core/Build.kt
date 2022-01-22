@@ -2,10 +2,9 @@ package io.kharf.kopa.core
 
 import com.akuleshov7.ktoml.KtomlConf
 import com.akuleshov7.ktoml.parsers.TomlParser
-import com.akuleshov7.ktoml.parsers.node.TomlKeyValueSimple
+import com.akuleshov7.ktoml.parsers.node.TomlKeyValuePrimitive
 import com.akuleshov7.ktoml.parsers.node.TomlTable
 import mu.KotlinLogging
-import okio.ExperimentalFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
@@ -42,7 +41,7 @@ object StringManifestInterpreter : ManifestInterpreter<String> {
         val dependencies: TomlTable =
             toml.children.find { node -> node.name == "dependencies" && node is TomlTable } as TomlTable?
                 ?: throw RuntimeException("dependencies wrongly configured")
-        val filteredDependencies = dependencies.children.filterIsInstance<TomlKeyValueSimple>()
+        val filteredDependencies = dependencies.children.filterIsInstance<TomlKeyValuePrimitive>()
         val deps = filteredDependencies.map { dependency ->
             Dependency(
                 name = dependency.key.content.substringAfterLast("."),
@@ -56,10 +55,9 @@ object StringManifestInterpreter : ManifestInterpreter<String> {
     }
 }
 
-class FileManifestInterpreter @OptIn(ExperimentalFileSystem::class) constructor(
+class FileManifestInterpreter(
     private val fileSystem: FileSystem = FileSystem.SYSTEM
 ) : ManifestInterpreter<File> {
-    @ExperimentalFileSystem
     override fun interpret(manifest: File): ManifestInterpretation {
         logger.info { "interpreting manifest file" }
         val path = manifest.toOkioPath()

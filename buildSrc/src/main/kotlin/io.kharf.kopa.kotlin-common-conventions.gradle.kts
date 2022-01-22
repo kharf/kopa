@@ -31,12 +31,13 @@ tasks.test {
 
 tasks {
     withType<JavaCompile> {
-        sourceCompatibility = "15"
-        targetCompatibility = "15"
+        sourceCompatibility = "16"
+        targetCompatibility = "16"
     }
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "15"
+            jvmTarget = "16"
+            freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
         }
     }
 }

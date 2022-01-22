@@ -2,7 +2,6 @@ package io.kharf.kopa.core
 
 import failgood.describe
 import kotlinx.serialization.ExperimentalSerializationApi
-import okio.ExperimentalFileSystem
 import okio.Path.Companion.toOkioPath
 import okio.fakefilesystem.FakeFileSystem
 import org.junit.platform.commons.annotation.Testable
@@ -12,7 +11,6 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import java.io.File
 
-@ExperimentalFileSystem
 @ExperimentalSerializationApi
 @Testable
 class ManifestInterpreterTest {

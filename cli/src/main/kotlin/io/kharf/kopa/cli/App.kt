@@ -13,7 +13,6 @@ import io.kharf.kopa.core.FileSystemArtifactStorage
 import io.kharf.kopa.core.KotlinJvmBuilder
 import io.kharf.kopa.core.MavenDependencyResolver
 import kotlinx.coroutines.runBlocking
-import okio.ExperimentalFileSystem
 import java.nio.file.Path
 
 class Kopa : CliktCommand() {
@@ -38,7 +37,6 @@ class Build(private val container: Container) : CliktCommand(help = "Compile a c
     }
 }
 
-@ExperimentalFileSystem
 fun main(args: Array<String>) {
     val container = AppContainer(
         manifestInterpreter = FileManifestInterpreter(),

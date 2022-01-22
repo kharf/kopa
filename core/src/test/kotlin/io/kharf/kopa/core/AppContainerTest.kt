@@ -3,7 +3,6 @@ package io.kharf.kopa.core
 import failgood.describe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.ExperimentalSerializationApi
-import okio.ExperimentalFileSystem
 import org.junit.platform.commons.annotation.Testable
 import strikt.api.expectThat
 import strikt.assertions.get
@@ -40,7 +39,6 @@ class FakeFileManifestInterpreter : ManifestInterpreter<File> {
     }
 }
 
-@ExperimentalFileSystem
 @ExperimentalSerializationApi
 @Testable
 class AppContainerTest {

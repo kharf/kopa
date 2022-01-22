@@ -3,17 +3,15 @@ package io.kharf.kopa.core
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.Url
 import io.ktor.utils.io.core.isEmpty
 import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import mu.KotlinLogging
-import okio.ExperimentalFileSystem
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
 import java.io.File
@@ -30,9 +28,9 @@ class HttpDependencyResolverClient(
 ) : DependencyResolverClient {
     override suspend fun resolve(url: String): Flow<ByteBuffer> {
         logger.info { "downloading $url" }
-        val response = client.get<HttpResponse>(Url(url))
+        val response = client.get(Url(url))
         return flow<ByteBuffer> {
-            val channel = response.content
+            val channel = response.bodyAsChannel()
             while (!channel.isClosedForRead) {
                 val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong(), 0)
                 while (!packet.isEmpty) {
@@ -46,7 +44,6 @@ class HttpDependencyResolverClient(
     }
 }
 
-@ExperimentalFileSystem
 class MavenDependencyResolver(
     private val client: DependencyResolverClient = HttpDependencyResolverClient()
 ) : DependencyResolver {
@@ -84,7 +81,6 @@ interface ArtifactStorage {
     suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location
 }
 
-@ExperimentalFileSystem
 class FileSystemArtifactStorage(
     private val fileSystem: FileSystem = FileSystem.SYSTEM,
 ) : ArtifactStorage {

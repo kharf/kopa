@@ -3,7 +3,6 @@ package io.kharf.kopa.core
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
-import okio.ExperimentalFileSystem
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -36,7 +35,6 @@ interface Container {
     suspend fun build(path: Path): BuildResult
 }
 
-@ExperimentalFileSystem
 @ExperimentalSerializationApi
 class AppContainer(
     private val manifestInterpreter: ManifestInterpreter<File>,

@@ -1,10 +1,8 @@
 package io.kharf.kopa.core
 
 import failgood.describe
-import okio.ExperimentalFileSystem
 import org.junit.platform.commons.annotation.Testable
 
-@ExperimentalFileSystem
 @Testable
 class ArtifactResolverTest {
     val context = describe(DependencyResolver::class) {

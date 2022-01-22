@@ -1,10 +1,9 @@
 package io.kharf.kopa.core
 
+import failgood.Test
 import failgood.describe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.ExperimentalSerializationApi
-import okio.ExperimentalFileSystem
-import org.junit.platform.commons.annotation.Testable
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.io.File
@@ -18,15 +17,14 @@ class FakeArtifactResolver : DependencyResolver {
     ): Artifacts = Artifacts(
         listOf(
             Artifact(Location(this::class.java.classLoader.getResource("testDependencies/kopa.jar").path)),
-            Artifact(Location("${System.getProperty("user.home")}/.kopa/kotlin-stdlib.jar"))
+            Artifact(Location("${System.getProperty("user.home")}/.kopa/kotlin-stdlib-1.6.10.jar"))
         )
     )
 }
 
 @ExperimentalSerializationApi
-@Testable
+@Test
 class KotlinJvmBuilderTest {
-    @ExperimentalFileSystem
     val context = describe(KotlinJvmBuilder::class) {
         val subject = KotlinJvmBuilder
         describe(KotlinJvmBuilder::build.toString()) {
@@ -72,7 +70,6 @@ class KotlinJvmBuilderTest {
                         Location("")
                     },
                 )
-                path.deleteRecursively()
                 expectThat(code).isEqualTo(ExitCode.OK)
             }
 
