@@ -17,7 +17,7 @@ class FakeArtifactResolver : DependencyResolver {
     ): Artifacts = Artifacts(
         listOf(
             Artifact(Location(this::class.java.classLoader.getResource("testDependencies/kopa.jar").path)),
-            Artifact(Location("${System.getProperty("user.home")}/.kopa/kotlin-stdlib-1.6.10.jar"))
+            Artifact(Location("${System.getProperty("user.home")}/.kopa/packages/kotlin-stdlib-1.6.10.jar"))
         )
     )
 }

@@ -41,17 +41,17 @@ class SinglePackage(
     private val artifactStorage: ArtifactStorage
 ) : Package {
     override suspend fun init(path: Path): Template {
-        logger.info { "initializing package on path ${path.absolutePathString()}" }
+        logger.info { "----- initializing package on path ${path.absolutePathString()}" }
         val template = SinglePackageTemplate(path)
         template.forEach { component ->
             create(component)
         }
-        logger.info { "successfully initialized package on path ${path.absolutePathString()}" }
+        logger.info { "----- SUCCESSFULLY INITIALIZED PACKAGE" }
         return template
     }
 
     override suspend fun build(path: Path): BuildResult {
-        logger.info { "building package on path ${path.absolutePathString()}" }
+        logger.info { "----- building package on path ${path.absolutePathString()}" }
         val interpretation = manifestInterpreter.interpret(File("${path.absolutePathString()}/kopa.toml"))
         val artifacts = dependencyResolver.resolve(interpretation.dependencies, artifactStorage::store)
         return when (
@@ -61,7 +61,7 @@ class SinglePackage(
             )
         ) {
             ExitCode.OK -> BuildResult.Ok.also {
-                logger.info { "successfully built package on path ${path.absolutePathString()}" }
+                logger.info { "----- SUCCESSFULLY BUILT PACKAGE" }
             }
             ExitCode.COMPILATION_ERROR, ExitCode.INTERNAL_ERROR, ExitCode.SCRIPT_EXECUTION_ERROR -> BuildResult.Error.also {
                 logger.error { "error occured during package build" }

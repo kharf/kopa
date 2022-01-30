@@ -6,12 +6,12 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
-import io.kharf.kopa.core.SinglePackage
-import io.kharf.kopa.core.Package
 import io.kharf.kopa.core.FileManifestInterpreter
 import io.kharf.kopa.core.FileSystemArtifactStorage
 import io.kharf.kopa.core.KotlinJvmBuilder
 import io.kharf.kopa.core.MavenDependencyResolver
+import io.kharf.kopa.core.Package
+import io.kharf.kopa.core.SinglePackage
 import kotlinx.coroutines.runBlocking
 import java.nio.file.Path
 

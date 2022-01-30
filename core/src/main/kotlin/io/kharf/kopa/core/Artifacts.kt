@@ -27,7 +27,7 @@ class HttpDependencyResolverClient(
     private val client: HttpClient = HttpClient(CIO)
 ) : DependencyResolverClient {
     override suspend fun resolve(url: String): Flow<ByteBuffer> {
-        logger.info { "downloading $url" }
+        logger.info { "----- downloading $url" }
         val response = client.get(Url(url))
         return flow<ByteBuffer> {
             val channel = response.bodyAsChannel()
@@ -51,9 +51,9 @@ class MavenDependencyResolver(
         dependencies: Dependencies,
         store: suspend (Flow<ByteBuffer>, String) -> Location
     ): Artifacts {
-        logger.info { "resolving dependencies" }
+        logger.info { "----- resolving dependencies" }
         val artifacts = dependencies.map { dependency ->
-            logger.info { "resolving ${dependency.name}-${dependency.version}" }
+            logger.info { "- ${dependency.name}-${dependency.version}" }
             val filePaths = dependency.group.split(".")
             val urlPathBuilder = StringBuilder("https://search.maven.org/classic/remotecontent?filepath=")
             filePaths.forEach { path ->
@@ -65,7 +65,7 @@ class MavenDependencyResolver(
             val artifactPath = urlPathBuilder.toString()
             Artifact(store(client.resolve(artifactPath), artifact))
         }
-        logger.info { "resolved dependencies" }
+        logger.info { "----- resolved dependencies" }
         return Artifacts(artifacts)
     }
 }
@@ -85,24 +85,25 @@ class FileSystemArtifactStorage(
     private val fileSystem: FileSystem = FileSystem.SYSTEM,
 ) : ArtifactStorage {
     private val kopaDir: File by lazy {
-        val dir = File("${System.getProperty("user.home")}/.kopa")
+        val dir = File("${System.getProperty("user.home")}/.kopa/packages")
         fileSystem.createDirectories(dir.toOkioPath())
         dir
     }
 
-    override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location =
-        withContext(Dispatchers.IO) {
-            logger.info { "storing $artifactName on file system" }
-            val artifactFile = File("${kopaDir.absolutePath}/$artifactName")
-            fileSystem.write(artifactFile.toOkioPath()) {
-                artifactContent.collect { buffer ->
-                    logger.trace { "collecting $buffer" }
-                    this.write(buffer)
-                    logger.trace { "stored ${artifactFile.length()}" }
+    override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location {
+        logger.info { "----- storing $artifactName on file system" }
+        val artifactFile = File("${kopaDir.absolutePath}/$artifactName")
+        fileSystem.write(artifactFile.toOkioPath()) {
+            artifactContent.collect { buffer ->
+                logger.trace { "collecting $buffer" }
+                withContext(Dispatchers.IO) {
+                    this@write.write(buffer)
                 }
+                logger.trace { "----- stored ${artifactFile.length()}" }
             }
-            Location(artifactFile.absolutePath)
         }
+        return Location(artifactFile.absolutePath)
+    }
 }
 
 class Artifacts(private val artifacts: List<Artifact>) : List<Artifact> by artifacts
