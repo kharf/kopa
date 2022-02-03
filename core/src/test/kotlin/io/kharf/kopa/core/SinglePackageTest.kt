@@ -29,6 +29,8 @@ class FakeDependencyResolver : DependencyResolver {
 }
 
 class FakeArtifactStorage : ArtifactStorage {
+    override val path: String = ""
+
     override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location = Location("")
 }
 

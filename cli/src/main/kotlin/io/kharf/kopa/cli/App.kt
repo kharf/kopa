@@ -9,6 +9,7 @@ import com.github.ajalt.clikt.parameters.arguments.optional
 import io.kharf.kopa.core.FileManifestInterpreter
 import io.kharf.kopa.core.FileSystemArtifactStorage
 import io.kharf.kopa.core.KotlinJvmBuilder
+import io.kharf.kopa.core.LocalDependencyResolver
 import io.kharf.kopa.core.MavenDependencyResolver
 import io.kharf.kopa.core.Package
 import io.kharf.kopa.core.SinglePackage
@@ -38,11 +39,12 @@ class Build(private val pack: Package) : CliktCommand(help = "Compile a package"
 }
 
 fun main(args: Array<String>) {
+    val artifactStorage = FileSystemArtifactStorage()
     val pack = SinglePackage(
         manifestInterpreter = FileManifestInterpreter(),
         builder = KotlinJvmBuilder,
-        dependencyResolver = MavenDependencyResolver(),
-        artifactStorage = FileSystemArtifactStorage()
+        dependencyResolver = LocalDependencyResolver(artifactStorage.path, MavenDependencyResolver()),
+        artifactStorage = artifactStorage
     )
     Kopa()
         .subcommands(Init(pack))

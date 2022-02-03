@@ -22,7 +22,10 @@ data class Dependency(
     val name: String,
     val group: String,
     val version: String,
-)
+) {
+    val fullName: String = "$name-$version"
+    val jarName: String = "$fullName.jar"
+}
 
 class Dependencies(list: List<Dependency>) : List<Dependency> by list
 

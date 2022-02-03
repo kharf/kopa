@@ -5,10 +5,9 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":utilities"))
     implementation("com.akuleshov7:ktoml-core:${Versions.ktoml}")
     implementation("com.akuleshov7:ktoml-file:${Versions.ktoml}")
-    implementation("org.jetbrains.kotlin:kotlin-compiler")
+    implementation("org.jetbrains.kotlin:kotlin-compiler:1.5.10")
     implementation("ch.qos.logback:logback-classic:${Versions.logback}")
     implementation("com.squareup.okio:okio:${Versions.okio}")
     implementation("io.ktor:ktor-client-core:${Versions.ktor}")

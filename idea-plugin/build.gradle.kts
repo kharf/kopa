@@ -14,6 +14,7 @@ dependencies {
 intellij {
     version.set("2021.3.2")
 }
+
 tasks {
     patchPluginXml {
         changeNotes.set(

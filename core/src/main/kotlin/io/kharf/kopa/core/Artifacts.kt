@@ -19,14 +19,8 @@ import java.nio.ByteBuffer
 
 private val logger = KotlinLogging.logger { }
 
-interface DependencyResolverClient {
-    suspend fun resolve(url: String): Flow<ByteBuffer>
-}
-
-class HttpDependencyResolverClient(
-    private val client: HttpClient = HttpClient(CIO)
-) : DependencyResolverClient {
-    override suspend fun resolve(url: String): Flow<ByteBuffer> {
+class HttpDependencyResolverClient(private val client: HttpClient = HttpClient(CIO)) {
+    suspend fun resolve(url: String): Flow<ByteBuffer> {
         logger.info { "----- downloading $url" }
         val response = client.get(Url(url))
         return flow<ByteBuffer> {
@@ -44,8 +38,19 @@ class HttpDependencyResolverClient(
     }
 }
 
+class LocalDependencyResolver(private val localPath: String, private val dependencyResolver: DependencyResolver) : DependencyResolver {
+    override suspend fun resolve(dependencies: Dependencies, store: suspend (Flow<ByteBuffer>, String) -> Location): Artifacts {
+        val unresolvedDependencies = Dependencies(
+            dependencies.filter { dependency ->
+                !File("$localPath/${dependency.jarName}").exists()
+            }
+        )
+        return dependencyResolver.resolve(unresolvedDependencies, store)
+    }
+}
+
 class MavenDependencyResolver(
-    private val client: DependencyResolverClient = HttpDependencyResolverClient()
+    private val client: HttpDependencyResolverClient = HttpDependencyResolverClient()
 ) : DependencyResolver {
     override suspend fun resolve(
         dependencies: Dependencies,
@@ -53,14 +58,14 @@ class MavenDependencyResolver(
     ): Artifacts {
         logger.info { "----- resolving dependencies" }
         val artifacts = dependencies.map { dependency ->
-            logger.info { "- ${dependency.name}-${dependency.version}" }
+            logger.info { "- ${dependency.fullName}" }
             val filePaths = dependency.group.split(".")
             val urlPathBuilder = StringBuilder("https://search.maven.org/classic/remotecontent?filepath=")
             filePaths.forEach { path ->
                 urlPathBuilder.append("$path/")
             }
             urlPathBuilder.append("${dependency.name}/${dependency.version}/")
-            val artifact = "${dependency.name}-${dependency.version}.jar"
+            val artifact = dependency.jarName
             urlPathBuilder.append(artifact)
             val artifactPath = urlPathBuilder.toString()
             Artifact(store(client.resolve(artifactPath), artifact))
@@ -78,21 +83,22 @@ interface DependencyResolver {
 }
 
 interface ArtifactStorage {
+    val path: String
     suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location
 }
 
 class FileSystemArtifactStorage(
     private val fileSystem: FileSystem = FileSystem.SYSTEM,
 ) : ArtifactStorage {
-    private val kopaDir: File by lazy {
+    override val path: String by lazy {
         val dir = File("${System.getProperty("user.home")}/.kopa/packages")
         fileSystem.createDirectories(dir.toOkioPath())
-        dir
+        dir.absolutePath
     }
 
     override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location {
         logger.info { "----- storing $artifactName on file system" }
-        val artifactFile = File("${kopaDir.absolutePath}/$artifactName")
+        val artifactFile = File("$path/$artifactName")
         fileSystem.write(artifactFile.toOkioPath()) {
             artifactContent.collect { buffer ->
                 logger.trace { "collecting $buffer" }
