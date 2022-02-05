@@ -1,0 +1,14 @@
+<configuration>
+    <conversionRule conversionWord="kopaHighlight"
+                    converterClass="io.kharf.kopa.cli.logging.KopaLogMessageColorConverter" />
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%cyan(%d{HH:mm:ss.SSS}) %highlight(%level): %kopaHighlight(%msg%n)</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

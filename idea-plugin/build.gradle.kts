@@ -5,9 +5,7 @@ plugins {
 }
 
 dependencies {
-    implementation("com.akuleshov7:ktoml-core:0.2.9")
-    implementation("com.akuleshov7:ktoml-file:0.2.9")
-    implementation("com.squareup.okio:okio:3.0.0")
+    implementation(project(":packages"))
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/

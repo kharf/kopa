@@ -19,6 +19,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("io.github.microutils:kotlin-logging-jvm:${Versions.kotlinLogging}")
+    implementation("ch.qos.logback:logback-classic:${Versions.logback}")
     testImplementation(kotlin("test"))
     testImplementation("dev.failgood:failgood:${Versions.failGood}")
     testImplementation("io.strikt:strikt-core:${Versions.strikt}")
@@ -37,6 +38,8 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions {
             jvmTarget = "11"
+            sourceCompatibility = "11"
+            targetCompatibility = "11"
             freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
         }
     }
