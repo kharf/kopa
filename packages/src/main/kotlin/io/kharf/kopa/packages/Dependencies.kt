@@ -28,7 +28,7 @@ class Dependencies(list: List<Dependency>) : List<Dependency> by list
 
 class HttpDependencyResolverClient(private val client: HttpClient = HttpClient(CIO)) {
     suspend fun resolve(url: String): Flow<ByteBuffer> {
-        logger.info { "----- downloading $url" }
+        logger.info { "downloading $url" }
         val response = client.get(Url(url))
         return flow<ByteBuffer> {
             val channel = response.bodyAsChannel()
@@ -52,15 +52,17 @@ interface DependencyResolver {
 class CachedDependencyResolver(private val artifactStorage: ArtifactStorage, private val dependencyResolver: DependencyResolver) :
     DependencyResolver {
     override suspend fun resolve(dependencies: Dependencies): Artifacts {
+        logger.info { "resolving local dependencies" }
         val unresolvedDependencies = Dependencies(
             dependencies.filter { dependency ->
                 !File("${artifactStorage.path}/${dependency.jarName}").exists()
             }
         )
         val resolvedDependencies = dependencies.minus(unresolvedDependencies)
-
-        // dependencyResolver.resolve(unresolvedDependencies)
-        return Artifacts(emptyList())
+        val resolvedArtifacts = resolvedDependencies.map { dependency -> Artifact(Location("${artifactStorage.path}/${dependency.jarName}")) }
+        val newArtifacts = if (!unresolvedDependencies.isEmpty()) dependencyResolver.resolve(unresolvedDependencies) else emptyList()
+        logger.info { "resolved local dependencies" }
+        return Artifacts(newArtifacts.plus(resolvedArtifacts))
     }
 }
 
@@ -69,9 +71,9 @@ class MavenDependencyResolver(
     private val artifactStorage: ArtifactStorage
 ) : DependencyResolver {
     override suspend fun resolve(dependencies: Dependencies): Artifacts {
-        logger.info { "----- resolving dependencies" }
+        logger.info { "resolving maven dependencies" }
         val artifacts = dependencies.map { dependency ->
-            logger.info { "- ${dependency.fullName}" }
+            logger.info { "${dependency.fullName}" }
             val filePaths = dependency.group.split(".")
             val urlPathBuilder = StringBuilder("https://search.maven.org/classic/remotecontent?filepath=")
             filePaths.forEach { path ->
@@ -84,7 +86,7 @@ class MavenDependencyResolver(
             val location = artifactStorage.store(client.resolve(artifactPath), artifactJarName)
             Artifact(location)
         }
-        logger.info { "----- resolved dependencies" }
+        logger.info { "resolved maven dependencies" }
         return Artifacts(artifacts)
     }
 }

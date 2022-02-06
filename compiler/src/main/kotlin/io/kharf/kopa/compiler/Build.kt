@@ -30,7 +30,7 @@ class KotlinJvmBuilder(
     private val dependencyResolver: DependencyResolver
 ) : Builder {
     override suspend fun build(packageDirPath: Path): ExitCode {
-        logger.info { "----- building package on path ${packageDirPath.absolutePathString()}" }
+        logger.info { "building package on path ${packageDirPath.absolutePathString()}" }
         val interpretation = manifestInterpreter.interpret(File("${packageDirPath.absolutePathString()}/kopa.toml"))
         val artifacts = dependencyResolver.resolve(interpretation.dependencies)
         val args = K2JVMCompilerArguments().apply {

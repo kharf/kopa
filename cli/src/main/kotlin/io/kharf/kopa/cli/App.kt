@@ -30,7 +30,7 @@ class Init(private val pack: Package) : CliktCommand(help = "Create a new projec
     override fun run() {
         runBlocking {
             pack.init(Path.of(path))
-            logger.info { "----- INIT SUCCESSFUL" }
+            logger.info { "INIT SUCCESSFUL" }
         }
     }
 }
@@ -41,9 +41,9 @@ class Build(private val builder: Builder) : CliktCommand(help = "Compile a packa
         runBlocking {
             when (builder.build(path?.let { Path.of(it) } ?: Path.of(""))) {
                 ExitCode.OK ->
-                    logger.info { "----- BUILD SUCCESSFUL" }
+                    logger.info { "BUILD SUCCESSFUL" }
                 ExitCode.COMPILATION_ERROR, ExitCode.INTERNAL_ERROR, ExitCode.SCRIPT_EXECUTION_ERROR ->
-                    logger.error { "----- BUILD ERROR" }
+                    logger.error { "BUILD ERROR" }
             }
         }
     }

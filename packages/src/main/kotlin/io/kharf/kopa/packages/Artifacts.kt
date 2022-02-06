@@ -31,7 +31,7 @@ class FileSystemArtifactStorage(
     }
 
     override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location {
-        logger.info { "----- storing $artifactName on file system" }
+        logger.info { "storing $artifactName on file system" }
         val artifactFile = File("$path/$artifactName")
         fileSystem.write(artifactFile.toOkioPath()) {
             artifactContent.collect { buffer ->
@@ -39,7 +39,7 @@ class FileSystemArtifactStorage(
                 withContext(Dispatchers.IO) {
                     this@write.write(buffer)
                 }
-                logger.trace { "----- stored ${artifactFile.length()}" }
+                logger.trace { "stored ${artifactFile.length()}" }
             }
         }
         return Location(artifactFile.absolutePath)

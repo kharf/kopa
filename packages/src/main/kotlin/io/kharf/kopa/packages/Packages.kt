@@ -30,7 +30,7 @@ interface Package {
 @ExperimentalSerializationApi
 class SinglePackage : Package {
     override suspend fun init(path: Path): Template {
-        logger.info { "----- initializing package on path ${path.absolutePathString()}" }
+        logger.info { "initializing package on path ${path.absolutePathString()}" }
         val template = SinglePackageTemplate(path)
         template.forEach { component ->
             create(component)

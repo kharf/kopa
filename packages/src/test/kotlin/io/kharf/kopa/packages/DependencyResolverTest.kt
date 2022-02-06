@@ -5,6 +5,7 @@ import io.kharf.kopa.test.FakeArtifactStorage
 import io.kharf.kopa.test.FakeDependencyResolver
 import org.junit.platform.commons.annotation.Testable
 import strikt.api.expect
+import strikt.assertions.endsWith
 import strikt.assertions.hasSize
 
 @Testable
@@ -49,6 +50,7 @@ class DependencyResolverTest {
                 )
                 expect {
                     that(artifacts).hasSize(1)
+                    that(artifacts[0].location.location).endsWith("kopa-1.0.jar")
                 }
             }
         }

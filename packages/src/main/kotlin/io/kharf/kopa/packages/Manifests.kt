@@ -21,7 +21,7 @@ interface ManifestInterpreter<in T> {
 
 object StringManifestInterpreter : ManifestInterpreter<String> {
     override fun interpret(manifest: String): ManifestInterpretation {
-        logger.trace { "----- interpreting manifest string" }
+        logger.trace { "interpreting manifest string" }
         val toml = TomlParser(KtomlConf()).parseString(manifest)
         val dependencies: TomlTable =
             toml.children.find { node -> node.name == "dependencies" && node is TomlTable } as TomlTable?
@@ -44,7 +44,7 @@ class FileManifestInterpreter(
     private val fileSystem: FileSystem = FileSystem.SYSTEM
 ) : ManifestInterpreter<File> {
     override fun interpret(manifest: File): ManifestInterpretation {
-        logger.trace { "----- interpreting manifest file" }
+        logger.trace { "interpreting manifest file" }
         val path = manifest.toOkioPath()
         val manifestString = fileSystem.read(path) {
             readUtf8()
