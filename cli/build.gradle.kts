@@ -3,7 +3,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":compiler"))
+    implementation(project(":packages"))
     implementation("com.github.ajalt.clikt:clikt:${Versions.clikt}")
     implementation("com.squareup.okio:okio:${Versions.okio}")
 }

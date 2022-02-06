@@ -1,2 +1,2 @@
 rootProject.name = "kopa"
-include("core", "cli", "idea-plugin", "utilities")
+include("compiler", "cli", "packages", "idea-plugin", "test-utilities")

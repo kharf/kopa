@@ -18,14 +18,14 @@ dependencies {
 
 tasks {
     withType<JavaCompile> {
-        sourceCompatibility = "16"
-        targetCompatibility = "16"
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
     }
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "16"
-            sourceCompatibility = "16"
-            targetCompatibility = "16"
+            jvmTarget = "11"
+            sourceCompatibility = "11"
+            targetCompatibility = "11"
             freeCompilerArgs = listOf("-Xopt-in=kotlin.RequiresOptIn")
         }
     }
