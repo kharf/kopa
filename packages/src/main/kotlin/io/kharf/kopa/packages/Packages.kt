@@ -50,8 +50,7 @@ class SinglePackage : Package {
                         "version = \"${component.content.packageTable.version.version}\"\n" +
                         "\n" +
                         "[dependencies]\n" +
-                        "\"${component.content.dependencyTable.dependencies[0].group}.${component.content.dependencyTable.dependencies[0].name}\" = \"${component.content.dependencyTable.dependencies[0].version}\"\n" +
-                        "\"${component.content.dependencyTable.dependencies[1].group}.${component.content.dependencyTable.dependencies[1].name}\" = \"${component.content.dependencyTable.dependencies[1].version}\"\n"
+                        "\"${component.content.dependencyTable.dependencies[0].group}.${component.content.dependencyTable.dependencies[0].name}\" = \"${component.content.dependencyTable.dependencies[0].version}\"\n"
                 )
             is PackageFile -> if (component is SourceFile) {
                 component.file.writeText(
@@ -119,7 +118,6 @@ object SinglePackageTemplate : PackageTemplate {
                                     Dependencies(
                                         listOf(
                                             Dependency(name = "kotlin-stdlib", group = "org.jetbrains.kotlin", version = "1.6.10"),
-                                            Dependency(name = "kotlin-stdlib-jdk7", group = "org.jetbrains.kotlin", version = "1.6.10")
                                         )
                                     )
                                 )
