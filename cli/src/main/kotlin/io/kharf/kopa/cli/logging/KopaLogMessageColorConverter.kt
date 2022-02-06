@@ -11,7 +11,7 @@ class KopaLogMessageColorConverter : ForegroundCompositeConverterBase<ILoggingEv
     override fun getForegroundColorCode(event: ILoggingEvent?): String {
         return when {
             event!!.message.contains("BUILD SUCCESSFUL") -> BOLD + GREEN_FG
-            event!!.message.contains("INIT SUCCESSFUL") -> BOLD + GREEN_FG
+            event.message.contains("INIT SUCCESSFUL") -> BOLD + GREEN_FG
             event.message.contains("BUILD ERROR") -> BOLD + RED_FG
             else -> DEFAULT_FG
         }

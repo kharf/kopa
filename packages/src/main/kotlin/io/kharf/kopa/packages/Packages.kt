@@ -50,7 +50,8 @@ class SinglePackage : Package {
                         "version = \"${component.content.packageTable.version.version}\"\n" +
                         "\n" +
                         "[dependencies]\n" +
-                        "\"org.jetbrains.kotlin.kotlin-stdlib\" = \"1.6.10\""
+                        "\"${component.content.dependencyTable.dependencies[0].group}.${component.content.dependencyTable.dependencies[0].name}\" = \"${component.content.dependencyTable.dependencies[0].version}\"\n" +
+                        "\"${component.content.dependencyTable.dependencies[1].group}.${component.content.dependencyTable.dependencies[1].name}\" = \"${component.content.dependencyTable.dependencies[1].version}\"\n"
                 )
             is PackageFile -> if (component is SourceFile) {
                 component.file.writeText(
@@ -67,7 +68,8 @@ class SinglePackage : Package {
 
 @Serializable
 data class ManifestContent(
-    val packageTable: PackageTable
+    val packageTable: PackageTable,
+    val dependencyTable: DependencyTable
 )
 
 @Serializable
@@ -84,20 +86,12 @@ data class PackageTable(
     val version: PackageTableVersion
 )
 
-@JvmInline
-value class PackageName(val name: String) {
-    override fun toString(): String = name
-}
+@Serializable
+data class DependencyTable(val dependencies: Dependencies)
 
 class Manifest(
-    packageName: PackageName,
     file: File,
-    val content: ManifestContent = ManifestContent(
-        PackageTable(
-            name = PackageTableName(packageName.name),
-            version = PackageTableVersion("0.1.0")
-        )
-    )
+    val content: ManifestContent
 ) : PackageFile(file)
 
 class Template(components: List<PackageComponent>) : List<PackageComponent> by components
@@ -114,13 +108,29 @@ object SinglePackageTemplate : PackageTemplate {
                 RootDirectory(
                     file = file,
                     children = listOf(
-                        Manifest(PackageName(file.name), File("${root.absolutePathString()}/kopa.toml")),
+                        Manifest(
+                            File("${root.absolutePathString()}/kopa.toml"),
+                            content = ManifestContent(
+                                PackageTable(
+                                    name = PackageTableName(file.name),
+                                    version = PackageTableVersion("0.1.0")
+                                ),
+                                DependencyTable(
+                                    Dependencies(
+                                        listOf(
+                                            Dependency(name = "kotlin-stdlib", group = "org.jetbrains.kotlin", version = "1.6.10"),
+                                            Dependency(name = "kotlin-stdlib-jdk7", group = "org.jetbrains.kotlin", version = "1.6.10")
+                                        )
+                                    )
+                                )
+                            )
+                        ),
                         SourceDirectory(
                             File("${root.absolutePathString()}/src"),
                             listOf(SourceFile(File("${root.absolutePathString()}/src/Main.kt")))
                         )
                     )
-                ),
+                )
             )
         )
     }

@@ -9,12 +9,14 @@ import io.ktor.utils.io.core.isEmpty
 import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.Serializable
 import mu.KotlinLogging
 import java.io.File
 import java.nio.ByteBuffer
 
 private val logger = KotlinLogging.logger { }
 
+@Serializable
 data class Dependency(
     val name: String,
     val group: String,
@@ -24,7 +26,8 @@ data class Dependency(
     val jarName: String = "$fullName.jar"
 }
 
-class Dependencies(list: List<Dependency>) : List<Dependency> by list
+@Serializable
+data class Dependencies(val list: List<Dependency>) : List<Dependency> by list
 
 class HttpDependencyResolverClient(private val client: HttpClient = HttpClient(CIO)) {
     suspend fun resolve(url: String): Flow<ByteBuffer> {
@@ -73,7 +76,7 @@ class MavenDependencyResolver(
     override suspend fun resolve(dependencies: Dependencies): Artifacts {
         logger.info { "resolving maven dependencies" }
         val artifacts = dependencies.map { dependency ->
-            logger.info { "${dependency.fullName}" }
+            logger.info { dependency.fullName }
             val filePaths = dependency.group.split(".")
             val urlPathBuilder = StringBuilder("https://search.maven.org/classic/remotecontent?filepath=")
             filePaths.forEach { path ->
