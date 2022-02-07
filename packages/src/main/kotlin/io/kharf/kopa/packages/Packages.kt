@@ -117,7 +117,12 @@ object SinglePackageTemplate : PackageTemplate {
                                 DependencyTable(
                                     Dependencies(
                                         listOf(
-                                            Dependency(name = "kotlin-stdlib", group = "org.jetbrains.kotlin", version = "1.6.10"),
+                                            Dependency(
+                                                name = "kotlin-stdlib",
+                                                group = "org.jetbrains.kotlin",
+                                                version = "1.6.10",
+                                                type = Dependency.Type.CLASSES
+                                            ),
                                         )
                                     )
                                 )

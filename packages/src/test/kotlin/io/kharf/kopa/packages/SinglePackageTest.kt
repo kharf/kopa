@@ -29,7 +29,14 @@ class SinglePackageTest {
                             get { this.content.packageTable.name }.isEqualTo(PackageTableName("testsample"))
                             get { this.content.packageTable.version }.isEqualTo(PackageTableVersion("0.1.0"))
                             get { this.content.dependencyTable.dependencies }.hasSize(1)
-                            get { this.content.dependencyTable.dependencies[0] }.isEqualTo(Dependency(name = "kotlin-stdlib", group = "org.jetbrains.kotlin", version = "1.6.10"))
+                            get { this.content.dependencyTable.dependencies[0] }.isEqualTo(
+                                Dependency(
+                                    name = "kotlin-stdlib",
+                                    group = "org.jetbrains.kotlin",
+                                    version = "1.6.10",
+                                    type = Dependency.Type.CLASSES
+                                )
+                            )
                         }
                         get(1).isA<SourceDirectory>().and {
                             get { this.file.path }.isEqualTo("${path.absolutePathString()}/src")

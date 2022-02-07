@@ -19,7 +19,8 @@ class DependencyResolverTest {
                             Dependency(
                                 name = "kotlin-stdlib",
                                 group = "org.jetbrains.kotlin",
-                                version = "1.6.0-RC"
+                                version = "1.6.0-RC",
+                                type = Dependency.Type.CLASSES
                             )
                         )
                     )
@@ -43,7 +44,8 @@ class DependencyResolverTest {
                             Dependency(
                                 name = "kopa",
                                 group = "",
-                                version = "1.0"
+                                version = "1.0",
+                                type = Dependency.Type.CLASSES
                             )
                         )
                     )

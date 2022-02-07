@@ -21,8 +21,16 @@ data class Dependency(
     val name: String,
     val group: String,
     val version: String,
+    val type: Type
 ) {
-    val fullName: String = "$name-$version"
+    enum class Type {
+        CLASSES, SOURCES;
+    }
+
+    val fullName: String = when (type) {
+        Type.CLASSES -> "$name-$version"
+        Type.SOURCES -> "$name-$version-sources"
+    }
     val jarName: String = "$fullName.jar"
 }
 
@@ -62,7 +70,7 @@ class CachedDependencyResolver(private val artifactStorage: ArtifactStorage, pri
             }
         )
         val resolvedDependencies = dependencies.minus(unresolvedDependencies)
-        val resolvedArtifacts = resolvedDependencies.map { dependency -> Artifact(Location("${artifactStorage.path}/${dependency.jarName}")) }
+        val resolvedArtifacts = resolvedDependencies.map { dependency -> Artifact(Location("${artifactStorage.path}/${dependency.jarName}"), Artifact.Type.valueOf(dependency.type.name)) }
         val newArtifacts = if (!unresolvedDependencies.isEmpty()) dependencyResolver.resolve(unresolvedDependencies) else emptyList()
         logger.info { "resolved local dependencies" }
         return Artifacts(newArtifacts.plus(resolvedArtifacts))
@@ -87,7 +95,7 @@ class MavenDependencyResolver(
             urlPathBuilder.append(artifactJarName)
             val artifactPath = urlPathBuilder.toString()
             val location = artifactStorage.store(client.resolve(artifactPath), artifactJarName)
-            Artifact(location)
+            Artifact(location, Artifact.Type.valueOf(dependency.type.name))
         }
         logger.info { "resolved maven dependencies" }
         return Artifacts(artifacts)

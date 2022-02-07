@@ -30,15 +30,29 @@ class ManifestInterpreterTest {
                     """.trimIndent()
                 )
                 expectThat(interpretation) {
-                    get { dependencies }.hasSize(2)[0].and {
+                    get { dependencies }.hasSize(4)[0].and {
                         get { name }.isEqualTo("kotlin-stdlib")
                         get { version }.isEqualTo("1.5.32")
                         get { group }.isEqualTo("org.jetbrains.kotlin")
+                        get { type }.isEqualTo(Dependency.Type.CLASSES)
                     }
-                    get { dependencies }[1].and {
+                    get { dependencies }.hasSize(4)[1].and {
+                        get { name }.isEqualTo("kotlin-stdlib")
+                        get { version }.isEqualTo("1.5.32")
+                        get { group }.isEqualTo("org.jetbrains.kotlin")
+                        get { type }.isEqualTo(Dependency.Type.SOURCES)
+                    }
+                    get { dependencies }[2].and {
                         get { name }.isEqualTo("failgood")
                         get { version }.isEqualTo("1.0.0")
                         get { group }.isEqualTo("dev.failgood")
+                        get { type }.isEqualTo(Dependency.Type.CLASSES)
+                    }
+                    get { dependencies }[3].and {
+                        get { name }.isEqualTo("failgood")
+                        get { version }.isEqualTo("1.0.0")
+                        get { group }.isEqualTo("dev.failgood")
+                        get { type }.isEqualTo(Dependency.Type.SOURCES)
                     }
                 }
             }
@@ -59,8 +73,8 @@ class ManifestInterpreterTest {
                        version = "0.1.0"
 
                        [dependencies]
-                       kotlin-stdlib = "1.5.32"
-                       failgood      = "1.0.0"
+                       "org.jetbrains.kotlin.kotlin-stdlib" = "1.5.32"
+                       "dev.failgood.failgood"              = "1.0.0"
                         """.trimIndent()
                     )
                 }
@@ -68,15 +82,29 @@ class ManifestInterpreterTest {
                     file
                 )
                 expectThat(interpretation) {
-                    get { dependencies }.hasSize(2)[0].and {
+                    get { dependencies }.hasSize(4)[0].and {
                         get { name }.isEqualTo("kotlin-stdlib")
                         get { version }.isEqualTo("1.5.32")
-                        get { group }.isEqualTo("")
+                        get { group }.isEqualTo("org.jetbrains.kotlin")
+                        get { type }.isEqualTo(Dependency.Type.CLASSES)
                     }
-                    get { dependencies }[1].and {
+                    get { dependencies }.hasSize(4)[1].and {
+                        get { name }.isEqualTo("kotlin-stdlib")
+                        get { version }.isEqualTo("1.5.32")
+                        get { group }.isEqualTo("org.jetbrains.kotlin")
+                        get { type }.isEqualTo(Dependency.Type.SOURCES)
+                    }
+                    get { dependencies }[2].and {
                         get { name }.isEqualTo("failgood")
                         get { version }.isEqualTo("1.0.0")
-                        get { group }.isEqualTo("")
+                        get { group }.isEqualTo("dev.failgood")
+                        get { type }.isEqualTo(Dependency.Type.CLASSES)
+                    }
+                    get { dependencies }[3].and {
+                        get { name }.isEqualTo("failgood")
+                        get { version }.isEqualTo("1.0.0")
+                        get { group }.isEqualTo("dev.failgood")
+                        get { type }.isEqualTo(Dependency.Type.SOURCES)
                     }
                 }
             }

@@ -27,11 +27,20 @@ object StringManifestInterpreter : ManifestInterpreter<String> {
             toml.children.find { node -> node.name == "dependencies" && node is TomlTable } as TomlTable?
                 ?: throw RuntimeException("dependencies wrongly configured")
         val filteredDependencies = dependencies.children.filterIsInstance<TomlKeyValuePrimitive>()
-        val deps = filteredDependencies.map { dependency ->
-            Dependency(
-                name = dependency.key.content.substringAfterLast("."),
-                version = dependency.value.content as String,
-                group = dependency.key.content.substringBeforeLast(".", ""),
+        val deps = filteredDependencies.flatMap { dependency ->
+            listOf(
+                Dependency(
+                    name = dependency.key.content.substringAfterLast("."),
+                    version = dependency.value.content as String,
+                    group = dependency.key.content.substringBeforeLast(".", ""),
+                    type = Dependency.Type.CLASSES
+                ),
+                Dependency(
+                    name = dependency.key.content.substringAfterLast("."),
+                    version = dependency.value.content as String,
+                    group = dependency.key.content.substringBeforeLast(".", ""),
+                    type = Dependency.Type.SOURCES
+                )
             )
         }
         return ManifestInterpretation(

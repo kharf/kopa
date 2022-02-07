@@ -14,7 +14,11 @@ private val logger = KotlinLogging.logger { }
 @JvmInline
 value class Location(val location: String)
 class Artifacts(private val artifacts: List<Artifact>) : List<Artifact> by artifacts
-data class Artifact(val location: Location)
+data class Artifact(val location: Location, val type: Type) {
+    enum class Type {
+        CLASSES, SOURCES;
+    }
+}
 
 interface ArtifactStorage {
     val path: String
@@ -25,7 +29,7 @@ class FileSystemArtifactStorage(
     private val fileSystem: FileSystem = FileSystem.SYSTEM,
 ) : ArtifactStorage {
     override val path: String by lazy {
-        val dir = File("${System.getProperty("user.home")}/.kopa/packages")
+        val dir = File("${System.getProperty("user.home")}/.kopa/artifacts")
         fileSystem.createDirectories(dir.toOkioPath())
         dir.absolutePath
     }

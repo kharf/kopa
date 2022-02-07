@@ -12,6 +12,7 @@ import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.io.URLUtil
+import io.kharf.kopa.packages.Dependency
 import io.kharf.kopa.packages.FileManifestInterpreter
 import java.io.File
 
@@ -34,7 +35,7 @@ class ImportKopaProjectAction : AnAction() {
         val app = ApplicationManager.getApplication()
         val projectLibraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project)
         val projectLibraryModel = projectLibraryTable.modifiableModel
-        interpretation.dependencies.forEach {
+        interpretation.dependencies.filter { it.type == Dependency.Type.CLASSES }.forEach {
             val kopaDepName = "Kopa: ${it.jarName}"
             val libExists = projectLibraryModel.libraries.find { it.name == kopaDepName } != null
             if (!libExists) {
@@ -42,11 +43,18 @@ class ImportKopaProjectAction : AnAction() {
                 val pathUrl: String =
                     VirtualFileManager.constructUrl(
                         URLUtil.JAR_PROTOCOL,
-                        "$homeDir/.kopa/packages/${it.jarName}"
+                        "$homeDir/.kopa/artifacts/${it.jarName}"
                     ) + JarFileSystem.JAR_SEPARATOR
                 val file: VirtualFile = VirtualFileManager.getInstance().findFileByUrl(pathUrl)!!
+                val sourcesPathUrl: String =
+                    VirtualFileManager.constructUrl(
+                        URLUtil.JAR_PROTOCOL,
+                        "$homeDir/.kopa/artifacts/${it.fullName}-sources.jar"
+                    ) + JarFileSystem.JAR_SEPARATOR
+                val sourcesFile: VirtualFile = VirtualFileManager.getInstance().findFileByUrl(sourcesPathUrl)!!
                 val libModifiableModel = lib.modifiableModel
                 libModifiableModel.addRoot(file, OrderRootType.CLASSES)
+                libModifiableModel.addRoot(sourcesFile, OrderRootType.SOURCES)
                 app.runWriteAction {
                     libModifiableModel.commit()
                     projectLibraryModel.commit()

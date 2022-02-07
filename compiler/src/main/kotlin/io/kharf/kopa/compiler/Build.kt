@@ -1,5 +1,6 @@
 package io.kharf.kopa.compiler
 
+import io.kharf.kopa.packages.Artifact
 import io.kharf.kopa.packages.DependencyResolver
 import io.kharf.kopa.packages.ManifestInterpreter
 import mu.KotlinLogging
@@ -32,7 +33,7 @@ class KotlinJvmBuilder(
     override suspend fun build(packageDirPath: Path): ExitCode {
         logger.info { "building package on path ${packageDirPath.absolutePathString()}" }
         val interpretation = manifestInterpreter.interpret(File("${packageDirPath.absolutePathString()}/kopa.toml"))
-        val artifacts = dependencyResolver.resolve(interpretation.dependencies)
+        val artifacts = dependencyResolver.resolve(interpretation.dependencies).filter { it.type == Artifact.Type.CLASSES }
         val args = K2JVMCompilerArguments().apply {
             freeArgs = listOf(File("${packageDirPath.absolutePathString()}/src/Main.kt").absolutePath)
             destination = File("${packageDirPath.absolutePathString()}/build/kopa.jar").absolutePath
