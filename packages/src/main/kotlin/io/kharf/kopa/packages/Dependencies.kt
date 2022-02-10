@@ -66,11 +66,18 @@ class CachedDependencyResolver(private val artifactStorage: ArtifactStorage, pri
         logger.info { "resolving local dependencies" }
         val unresolvedDependencies = Dependencies(
             dependencies.filter { dependency ->
-                !File("${artifactStorage.path}/${dependency.jarName}").exists()
+                val groupPath = dependency.group.replace(".", "/")
+                !File("${artifactStorage.path}/$groupPath/${dependency.jarName}").exists()
             }
         )
         val resolvedDependencies = dependencies.minus(unresolvedDependencies)
-        val resolvedArtifacts = resolvedDependencies.map { dependency -> Artifact(Location("${artifactStorage.path}/${dependency.jarName}"), Artifact.Type.valueOf(dependency.type.name)) }
+        val resolvedArtifacts = resolvedDependencies.map { dependency ->
+            val groupPath = dependency.group.replace(".", "/")
+            Artifact(
+                Location("${artifactStorage.path}/$groupPath/${dependency.jarName}"),
+                Artifact.Type.valueOf(dependency.type.name)
+            )
+        }
         val newArtifacts = if (!unresolvedDependencies.isEmpty()) dependencyResolver.resolve(unresolvedDependencies) else emptyList()
         logger.info { "resolved local dependencies" }
         return Artifacts(newArtifacts.plus(resolvedArtifacts))
@@ -85,16 +92,14 @@ class MavenDependencyResolver(
         logger.info { "resolving maven dependencies" }
         val artifacts = dependencies.map { dependency ->
             logger.info { dependency.fullName }
-            val filePaths = dependency.group.split(".")
+            val groupPath = dependency.group.replace(".", "/")
             val urlPathBuilder = StringBuilder("https://search.maven.org/classic/remotecontent?filepath=")
-            filePaths.forEach { path ->
-                urlPathBuilder.append("$path/")
-            }
+            urlPathBuilder.append("$groupPath/")
             urlPathBuilder.append("${dependency.name}/${dependency.version}/")
             val artifactJarName = dependency.jarName
             urlPathBuilder.append(artifactJarName)
             val artifactPath = urlPathBuilder.toString()
-            val location = artifactStorage.store(client.resolve(artifactPath), artifactJarName)
+            val location = artifactStorage.store(client.resolve(artifactPath), artifactJarName, groupPath)
             Artifact(location, Artifact.Type.valueOf(dependency.type.name))
         }
         logger.info { "resolved maven dependencies" }

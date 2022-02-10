@@ -8,6 +8,8 @@ import okio.FileSystem
 import okio.Path.Companion.toOkioPath
 import java.io.File
 import java.nio.ByteBuffer
+import kotlin.io.path.Path
+import kotlin.io.path.createDirectories
 
 private val logger = KotlinLogging.logger { }
 
@@ -22,7 +24,7 @@ data class Artifact(val location: Location, val type: Type) {
 
 interface ArtifactStorage {
     val path: String
-    suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location
+    suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String, subPath: String): Location
 }
 
 class FileSystemArtifactStorage(
@@ -34,9 +36,11 @@ class FileSystemArtifactStorage(
         dir.absolutePath
     }
 
-    override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location {
+    override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String, subPath: String): Location {
         logger.info { "storing $artifactName on file system" }
-        val artifactFile = File("$path/$artifactName")
+        val pathWithoutFile = "$path/$subPath"
+        val artifactFile = File("$pathWithoutFile/$artifactName")
+        Path(pathWithoutFile).createDirectories()
         fileSystem.write(artifactFile.toOkioPath()) {
             artifactContent.collect { buffer ->
                 logger.trace { "collecting $buffer" }

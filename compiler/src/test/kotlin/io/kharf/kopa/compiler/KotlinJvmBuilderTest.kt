@@ -23,7 +23,7 @@ class KotlinJvmBuilderTest {
                 Artifacts(
                     listOf(
                         Artifact(Location(this::class.java.classLoader.getResource("testDependencies/kopa.jar").path), Artifact.Type.CLASSES),
-                        Artifact(Location("${System.getProperty("user.home")}/.kopa/artifacts/kotlin-stdlib-1.6.10.jar"), Artifact.Type.CLASSES)
+                        Artifact(Location("${System.getProperty("user.home")}/.kopa/artifacts/org/jetbrains/kotlin/kotlin-stdlib-1.6.10.jar"), Artifact.Type.CLASSES)
                     )
                 )
             )

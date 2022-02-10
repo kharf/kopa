@@ -16,7 +16,7 @@ class FakeDependencyResolver(val artifacts: Artifacts) : DependencyResolver {
 }
 
 class FakeArtifactStorage(override val path: String = "") : ArtifactStorage {
-    override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String): Location = Location("")
+    override suspend fun store(artifactContent: Flow<ByteBuffer>, artifactName: String, subPath: String): Location = Location("")
 }
 
 class FakeFileManifestInterpreter : ManifestInterpreter<File> {
