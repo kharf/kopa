@@ -3,7 +3,7 @@ object Versions {
     const val kotlinxCoroutines = "1.6.0"
     const val clikt = "3.4.0"
     const val ktoml = "0.2.9"
-    const val xmlutil = "0.84.0"
+    const val mavenModel = "3.8.4"
     const val failGood = "0.5.2"
     const val strikt = "0.33.0"
     const val kotlinLogging = "2.1.21"

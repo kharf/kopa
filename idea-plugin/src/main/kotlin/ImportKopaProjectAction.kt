@@ -14,6 +14,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.io.URLUtil
 import io.kharf.kopa.packages.Dependency
 import io.kharf.kopa.packages.FileManifestInterpreter
+import io.kharf.kopa.packages.getGroupPath
 import java.io.File
 
 class ImportKopaProjectAction : AnAction() {
@@ -36,20 +37,20 @@ class ImportKopaProjectAction : AnAction() {
         val projectLibraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project)
         val projectLibraryModel = projectLibraryTable.modifiableModel
         interpretation.dependencies.filter { it.type == Dependency.Type.CLASSES }.forEach {
-            val kopaDepName = "Kopa: ${it.jarName}"
+            val kopaDepName = "Kopa: ${it.fullName}"
             val libExists = projectLibraryModel.libraries.find { it.name == kopaDepName } != null
             if (!libExists) {
                 val lib = projectLibraryModel.createLibrary(kopaDepName)
                 val pathUrl: String =
                     VirtualFileManager.constructUrl(
                         URLUtil.JAR_PROTOCOL,
-                        "$homeDir/.kopa/artifacts/${it.jarName}"
+                        "$homeDir/.kopa/artifacts/${it.getGroupPath()}/${it.fullName}"
                     ) + JarFileSystem.JAR_SEPARATOR
                 val file: VirtualFile = VirtualFileManager.getInstance().findFileByUrl(pathUrl)!!
                 val sourcesPathUrl: String =
                     VirtualFileManager.constructUrl(
                         URLUtil.JAR_PROTOCOL,
-                        "$homeDir/.kopa/artifacts/${it.fullName}-sources.jar"
+                        "$homeDir/.kopa/artifacts/${it.getGroupPath()}/${it.name}-${it.version}-sources.jar"
                     ) + JarFileSystem.JAR_SEPARATOR
                 val sourcesFile: VirtualFile = VirtualFileManager.getInstance().findFileByUrl(sourcesPathUrl)!!
                 val libModifiableModel = lib.modifiableModel

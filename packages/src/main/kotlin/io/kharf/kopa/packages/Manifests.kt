@@ -28,18 +28,30 @@ object StringManifestInterpreter : ManifestInterpreter<String> {
                 ?: throw RuntimeException("dependencies wrongly configured")
         val filteredDependencies = dependencies.children.filterIsInstance<TomlKeyValuePrimitive>()
         val deps = filteredDependencies.flatMap { dependency ->
+            val name = dependency.key.content.substringAfterLast(".")
+            val version = dependency.value.content as String
+            val group = dependency.key.content.substringBeforeLast(".", "")
             listOf(
                 Dependency(
-                    name = dependency.key.content.substringAfterLast("."),
-                    version = dependency.value.content as String,
-                    group = dependency.key.content.substringBeforeLast(".", ""),
-                    type = Dependency.Type.CLASSES
+                    name = name,
+                    version = version,
+                    group = group,
+                    type = Dependency.Type.CLASSES,
+                    scope = Dependency.Scope.COMPILE
                 ),
                 Dependency(
-                    name = dependency.key.content.substringAfterLast("."),
-                    version = dependency.value.content as String,
-                    group = dependency.key.content.substringBeforeLast(".", ""),
-                    type = Dependency.Type.SOURCES
+                    name = name,
+                    version = version,
+                    group = group,
+                    type = Dependency.Type.SOURCES,
+                    scope = Dependency.Scope.COMPILE
+                ),
+                Dependency(
+                    name = name,
+                    version = version,
+                    group = group,
+                    type = Dependency.Type.POM,
+                    scope = Dependency.Scope.COMPILE
                 )
             )
         }

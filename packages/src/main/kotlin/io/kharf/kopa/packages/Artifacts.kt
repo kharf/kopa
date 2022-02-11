@@ -18,7 +18,7 @@ value class Location(val location: String)
 class Artifacts(private val artifacts: List<Artifact>) : List<Artifact> by artifacts
 data class Artifact(val location: Location, val type: Type) {
     enum class Type {
-        CLASSES, SOURCES;
+        CLASSES, SOURCES, POM;
     }
 }
 

@@ -7,8 +7,7 @@ plugins {
 dependencies {
     api("com.akuleshov7:ktoml-core:${Versions.ktoml}")
     implementation("com.akuleshov7:ktoml-file:${Versions.ktoml}")
-    implementation("io.github.pdvrieze.xmlutil:core-jvm:${Versions.xmlutil}")
-    implementation("io.github.pdvrieze.xmlutil:serialization-jvm:${Versions.xmlutil}")
+    implementation("org.apache.maven:maven-model:${Versions.mavenModel}")
     api("com.squareup.okio:okio:${Versions.okio}")
     implementation("io.ktor:ktor-client-core:${Versions.ktor}")
     implementation("io.ktor:ktor-client-cio:${Versions.ktor}")

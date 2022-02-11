@@ -121,7 +121,8 @@ object SinglePackageTemplate : PackageTemplate {
                                                 name = "kotlin-stdlib",
                                                 group = "org.jetbrains.kotlin",
                                                 version = "1.6.10",
-                                                type = Dependency.Type.CLASSES
+                                                type = Dependency.Type.CLASSES,
+                                                scope = Dependency.Scope.COMPILE
                                             ),
                                         )
                                     )
