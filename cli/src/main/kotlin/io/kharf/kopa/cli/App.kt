@@ -9,7 +9,6 @@ import com.github.ajalt.clikt.parameters.arguments.optional
 import io.kharf.kopa.compiler.Builder
 import io.kharf.kopa.compiler.ExitCode
 import io.kharf.kopa.compiler.KotlinJvmBuilder
-import io.kharf.kopa.packages.CachedDependencyResolver
 import io.kharf.kopa.packages.FileManifestInterpreter
 import io.kharf.kopa.packages.FileSystemArtifactStorage
 import io.kharf.kopa.packages.MavenDependencyResolver
@@ -54,7 +53,7 @@ fun main(args: Array<String>) {
     val pack = SinglePackage()
     val builder = KotlinJvmBuilder(
         manifestInterpreter = FileManifestInterpreter(),
-        dependencyResolver = CachedDependencyResolver(artifactStorage, MavenDependencyResolver(artifactStorage = artifactStorage))
+        dependencyResolver = MavenDependencyResolver(artifactStorage = artifactStorage)
     )
     Kopa()
         .subcommands(Init(pack))

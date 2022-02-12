@@ -16,7 +16,13 @@ private val logger = KotlinLogging.logger { }
 @JvmInline
 value class Location(val location: String)
 class Artifacts(private val artifacts: List<Artifact>) : List<Artifact> by artifacts
-data class Artifact(val location: Location, val type: Type) {
+data class Artifact(
+    val name: String,
+    val group: String,
+    val version: String,
+    val location: Location,
+    val type: Type
+) {
     enum class Type {
         CLASSES, SOURCES, POM;
     }
